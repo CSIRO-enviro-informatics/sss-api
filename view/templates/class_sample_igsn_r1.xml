@@ -1,0 +1,47 @@
+<igsn:resource
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:igsn="http://schema.igsn.org/description/1.0"
+        xsi:schemaLocation="http://schema.igsn.org/description/1.0 https://raw.githubusercontent.com/IGSN/metadata/r1/description/resource.xsd"
+        registedObjectType="http://schema.igsn.org/vocab/PhysicalSample">
+    <igsn:identifier type="IGSN">{{ igsn }}</igsn:identifier>
+    <igsn:title>Sample igsn:{{ igsn }}</igsn:title>
+    {% if sample_id is not none %}
+    <igsn:alternateIdentifiers>
+        <igsn:alternateIdentifier>{{ sample_id }}</igsn:alternateIdentifier>
+    </igsn:alternateIdentifiers>
+    {% endif %}
+    <igsn:description>{{ description }}</igsn:description>
+    <igsn:registrant>
+        <igsn:name>Geoscience Australia</igsn:name>
+        <igsn:affiliation>
+            <igsn:identifier type="URI">http://pid.geoscience.gov.au/org/ga/geoscienceaustralia</igsn:identifier>
+            <igsn:name>Geoscience Australia</igsn:name>
+        </igsn:affiliation>
+    </igsn:registrant>
+    <igsn:resourceTypes>
+        <igsn:resourceType>{{ sample_type }}</igsn:resourceType>
+    </igsn:resourceTypes>
+    <igsn:materials>
+        <igsn:material>{{ material_type }}/</igsn:material>
+    </igsn:materials>
+    <igsn:locations>
+        <igsn:geometry type="Point" sridType="4326">{{ wkt }}</igsn:geometry>
+    </igsn:locations>
+    <igsn:collectionMethods>
+        <igsn:collectionMethod>{{ collection_method }}</igsn:collectionMethod>
+    </igsn:collectionMethods>
+    <igsn:contributors>
+        <igsn:contributor type="HostingInstitution">
+            <igsn:name>{{ custodian_label }}</igsn:name>
+            <igsn:identifier type="URI">{{ custodian_uri }}</igsn:identifier>
+        </igsn:contributor>
+    </igsn:contributors>
+    {% if collector is not none %}
+    <igsn:collectors>
+        <igsn:collector>
+            <igsn:name>{{ collector }}</igsn:name>
+        </igsn:collector>
+    </igsn:collectors>
+    {%  endif %}
+    <igsn:isMetadataPublic>Public</igsn:isMetadataPublic>
+</igsn:resource>

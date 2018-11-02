@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH
+        xmlns="http://www.openarchives.org/OAI/2.0/"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/
+        http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+    <responseDate>{{ response_date }}</responseDate>
+    {% if identifier is not none %}
+    <request verb="ListMetadataFormats" identifier="{{ identifier }}">{{ request_uri }}</request>
+    {% else %}
+    <request verb="ListMetadataFormats">{{ request_uri }}</request>
+    {% endif %}
+    <ListMetadataFormats>
+        <metadataFormat>
+            <metadataPrefix>oai_dc</metadataPrefix>
+            <schema>http://www.openarchives.org/OAI/2.0/oai_dc.xsd</schema>
+            <metadataNamespace>http://www.openarchives.org/OAI/2.0/oai_dc/</metadataNamespace>
+        </metadataFormat>
+        <metadataFormat>
+            <metadataPrefix>igsn</metadataPrefix>
+            <schema>https://github.com/IGSN/metadata/blob/master/description/resource.xsd</schema>
+            <metadataNamespace>http://schema.igsn.org/description/1.0</metadataNamespace>
+        </metadataFormat>
+        <metadataFormat>
+            <metadataPrefix>igsn-r1</metadataPrefix>
+            <schema>https://raw.githubusercontent.com/IGSN/metadata/r1/description/resource.xsd</schema>
+            <metadataNamespace>http://schema.igsn.org/description/1.0</metadataNamespace>
+        </metadataFormat>
+        <metadataFormat>
+            <metadataPrefix>csirov3</metadataPrefix>
+            <schema>https://igsn.csiro.au/schemas/3.0/igsn-csiro-v3.0.xsd</schema>
+            <metadataNamespace>https://igsn.csiro.au/schemas/3.0</metadataNamespace>
+        </metadataFormat>
+    </ListMetadataFormats>
+</OAI-PMH>

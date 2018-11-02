@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1>Linked Data API</h1>
+
+<h2>About</h2>
+<p>This <a href="https://en.wikipedia.org/wiki/Application_programming_interface">Application Programming Interface</a> (API) is designed to provide access to GA's Samples, Sites and Surveys Database. GA has over 3 million samples that are each identified by an <a href="https://en.wikipedia.org/wiki/International_Geo_Sample_Number">International Geo Sample Number for Samples</a>, a digital catalogue record of sites used by GA and its Surveys stored in an ARGUS database.</p>
+
+<h2>Usage</h2>
+<p>This API is a <a href="https://en.wikipedia.org/wiki/Linked_data">Linked Data</a> API in that it provides information about Samples and the list of Samples (the Sample Register) according to Linked Data principles. These include the principles that data items should be identified with persistent <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">URI</a>s and that information should be provided in both human-readable and machine-readable formats. To these ends, this Linked Data API resolves URIs for Samples of the following form:
+
+<h3>Sample</h3>
+<p><code>http://pid.geoscience.gov.au/sample/{IGSN}</code></p> GA's base persistent URI is used (<code>http://pid.geoscience.gov.au</code>), the <code>sample</code> class of item is indicated by the individual sample's IGSN.</p>
+<p>Another form of access is to use the <b>OAI-PMH</b> - <a href="https://www.openarchives.org/pmh/">Open Archives Initiative - Protocol for Metadata Harvesting</a>: an HTTP API for harvesting metadata for objects in XML. This form of access is a requirement of the IGSN community</p>
+
+
+<h3>Site</h3>
+<p>This system provides landing pages for digital catalogue record sites utilised by GA. It contains views according to models such as the National Environmental Monitoring Sites Register and the Geoscience Australia's Public Data Model ontology.</p>
+<p>This Linked Data API resolves for Sites used by the GA with the following form: <p><code>http://pid.geoscience.gov.au/site/{SITE_NO}</code>.</p></p>
+
+<h3>Survey</h3>
+<p>This system provides the landing pages for metadata about Surveys stored in GA's corporate database known as ARGUS. It contains views according to models such as GA'S ARGUS, GA'S Public Data Model, PROV-O and the Semantic Sensor Network Ontology.</p>
+<p>This Linked Data API resolves for Surveys from the ARGUS database with the following form:<p><code>http://pid.geoscience.gov.au/survey/ga/{SURVEY_NO}</code>.</p></p>
+
+<h2>OGC WMS Web Service</h2>
+
+<p>While this web page describes this system for a human to read, it's not so good for machines, so we also provide a machine-readable version. We have implemented, as a test, an <a href="http://www.opengeospatial.org/">OGC</a> <a href="http://www.opengeospatial.org/standards/wms">WMS web service</a>'s <em>GetCapabilities</em> function which:</p>
+<blockquote><em>Retrieves metadata about the service, including supported operations and parameters</em></blockquote>
+<p>To view the <em>GetCapabilities</em> function results for this API, see:</p>
+<ul>
+    <li><a href="{{ url_for('controller.index') }}?_view=getcapabilities&_format=text/xml">{{ url_for('controller.index') }}?_view=getcapabilities&_format=text/xml</a></li>
+</ul>
+
+<h2>Views</h2>
+
+<p>This API uses the the <a href="https://github.com/RDFLib/pyLDAPI">pyLDAPI</a>, a tool to deliver APIs in Linked Data.
+
+<h2>Code</h2>
+<p>The code for this application is available at: <p><em>Coming soon!</em></p></p>
+
+<h2>Contact</h2>
+<p>To contact the people who built and maintain this API, please email <code>dataman@ga.gov.au</code>.</p>
+
+
+
+{% endblock %}

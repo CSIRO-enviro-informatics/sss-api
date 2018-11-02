@@ -1,0 +1,23 @@
+<table class="pretty">
+    <tr><th>Property</th><th>Value</th></tr>
+    <tr><th>Identifier</th><td>{{ identifier }}</td></tr>
+    <tr><th>Title</th><td>Sample igsn:{{ identifier }}</td></tr>
+    {% if description is not none %}
+    <tr><th>Description</th><td>{{ description }}</td></tr>
+    {% endif %}
+    <tr><th>Date</th><td>{{ date|safe }}</td></tr>
+    <tr><th>Type</th><td><a href="{{ type }}">{{ type.split('/')[-1] }}</a></td></tr>
+    <tr><th>Format</th><td><a href="{{ format }}">{{ format.split('/')[-1] }}</a></td></tr>
+    <tr>
+        <th>
+            Coverage<br />
+            vertical datum: <a href="https://epsg.io/4283">4283</a>
+        </th>
+        <td>{{ wkt }}</td>
+    </tr>
+    <tr><th>Custodian:</th><td><a href="{{ custodian_uri }}">{{ custodian_label }}</a></td></tr>
+    {% if collector is not none %}
+    <tr><th>Creator:</th><td>{{ collector }}</td></tr>
+    {% endif %}
+    <tr><th>Rights:</th><td><a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons 4.0</a></td></tr>
+</table>

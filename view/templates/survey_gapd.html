@@ -1,0 +1,71 @@
+    <h2>GA PDM view</h2>
+    <p>These properties are those listed in GA's <a href="http://pid.geoscience.gov.au/def/ont/ga/pdm">Public Data Model</a> view of a Survey.</p>
+    <table class="pretty">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>ID</td><td>{{ survey_id }}</td></tr>
+        <tr><td>Name</td><td>{{ survey_name }}</td></tr>
+        <tr><td>State</td><td>{{ state }}</td></tr>
+        <tr>
+            <td>
+                Agents:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;Contractor<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;Operator<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;Processor<br />
+            </td>
+            <td>
+                <br />
+                {{ contractor }}<br />
+                {{ operator }}<br />
+                {{ processor }}<br />
+            </td>
+        </tr>
+        <tr><td>survey_type</td><td>{{ survey_type }}</td></tr>
+        <tr><td>data_types</td><td>{{ data_types }}</td></tr>
+        <tr>
+            <td>
+                Vessel:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;Type<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;Name
+            </td>
+            <td>
+                <br />
+                {{ vessel_type }}<br />
+                {{ vessel }}
+            </td>
+        </tr>
+        <tr><td>release_date</td><td>{{ release_date }}</td></tr>
+        <tr><td>onshore_offshore</td><td>{{ onshore_offshore }}</td></tr>
+        <tr>
+            <td>
+                Dates:<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;Start<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;End
+            </td>
+            <td>
+                <br />
+                {{ start_date }}<br />
+                {{ end_date }}
+            </td>
+        </tr>
+        <tr><td>Bounding Box</td><td>{{ wkt_polygon }}</td></tr>
+
+        <tr><td>crystal_volume</td><td>{{ crystal_volume }}</td></tr>
+        <tr><td>up_crystal_volume</td><td>{{ up_crystal_volume }}</td></tr>
+        <tr><td>digital_data</td><td>{{ digital_data }}</td></tr>
+        <tr><td>geodetic_datum</td><td>{{ geodetic_datum }}</td></tr>
+        <tr><td>asl</td><td>{{ asl }}</td></tr>
+        <tr><td>agl</td><td>{{ agl }}</td></tr>
+        <tr>
+            <td>
+                Instruments:<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;Magnetics<br />
+                &nbsp;&nbsp;&nbsp;&nbsp;Radiation<br />
+            </td>
+            <td>
+                <br />
+                {{ mag_instrument }}<br />
+                {{ rad_instrument }}<br />
+            </td>
+        </tr>
+        <tr><td>Has Provenance</td><td><a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_id }}?_view=prov">{{ survey_id }}?_view=prov</a></td></tr>
+    </table>

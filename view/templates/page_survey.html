@@ -1,0 +1,57 @@
+{% extends "survey_page_layout.html" %}
+
+{% block content %}
+    <h1>Survey {{ survey_id }}</h1>
+    <style>
+        #map {
+            width: 568px;
+            height: 200px;
+            margin: 0;
+            padding: 0;
+            margin-bottom: 10px;
+        }
+    </style>
+    <div id="map"></div>
+    <script>
+        function initMap() {
+            var myLatLng = {lat: {{ centroid_lat }}, lng: {{ centroid_lon }}};
+
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 6,
+                center: myLatLng
+            });
+
+            var bboxCoords = [
+                {lat: {{ n_lat }}, lng: {{ w_long }}},
+                {lat: {{ s_lat }}, lng: {{ w_long }}},
+                {lat: {{ s_lat }}, lng: {{ e_long }}},
+                {lat: {{ n_lat }}, lng: {{ e_long }}},
+                {lat: {{ n_lat }}, lng: {{ w_long }}}
+            ];
+            // Construct the polygon.
+            var bbox = new google.maps.Polygon({
+                paths: bboxCoords,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35
+            });
+            bbox.setMap(map);
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ gm_key }}&callback=initMap"></script>
+
+    {{ view_html|safe }}
+
+    <h2>Other views</h2>
+    <!--<p>Other model views of a Survey are listed in the <a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_id }}?_view=alternates">Alternates View</a>.</p>-->
+    <p>Other views of this Sample are listed in the <a href="{{ url_for('classes.survey', survey_id=survey_id) }}?_view=alternates">Alternates View</a>.</p>
+
+    <h2>Citation</h2>
+    <p>If you wish to cite this survey as you would a publication, please use the following format:</p>
+    <code style="display:block; margin: 0 5em 0 5em;">
+        Geoscience Australia ({{ end_date.strftime('%Y') }}) "Survey {{ survey_id }}". {{ survey_type }} geophysical data collection survey. Geoscience Australia. Accessed {{ date_now }}. <a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_id }}">http://pid.geoscience.gov.au/survey/ga/{{ survey_id }}</a>
+    </code>
+
+{% endblock %}
