@@ -2,7 +2,7 @@
     <p>These properties are those listed in GA's <a href="http://pid.geoscience.gov.au/def/ont/ga/pdm">Public Data Model</a> view of a Survey.</p>
     <table class="pretty">
         <tr><th>Property</th><th>Value</th></tr>
-        <tr><td>ID</td><td>{{ survey_id }}</td></tr>
+        <tr><td>ID</td><td>{{ survey_no }}</td></tr>
         <tr><td>Name</td><td>{{ survey_name }}</td></tr>
         <tr><td>State</td><td>{{ state }}</td></tr>
         <tr>
@@ -67,5 +67,5 @@
                 {{ rad_instrument }}<br />
             </td>
         </tr>
-        <tr><td>Has Provenance</td><td><a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_id }}?_view=prov">{{ survey_id }}?_view=prov</a></td></tr>
+        <tr><td>Has Provenance</td><td><a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_no }}?_view=prov">{{ survey_no }}?_view=prov</a></td></tr>
     </table>

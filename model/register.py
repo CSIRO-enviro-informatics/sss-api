@@ -1,7 +1,6 @@
 from .renderer import Renderer
 from flask import Response, render_template
 from rdflib import Graph, URIRef, RDF, RDFS, XSD, Namespace, Literal
-from _ldapi.__init__ import LDAPI
 from lxml import etree
 import requests
 from io import StringIO, BytesIO
@@ -47,7 +46,7 @@ class RegisterRenderer(Renderer):
 
                 return Response(
                     render_template(
-                        'register.html',
+                        'class_register.html',
                         organisation_branding=organisation_branding,
                         base_uri=self.base_uri,
                         class_name=self.uri,

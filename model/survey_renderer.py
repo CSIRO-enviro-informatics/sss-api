@@ -19,7 +19,7 @@ class SurveyRenderer(Renderer):
     URI_INAPPLICABLE = 'http://www.opengis.net/def/nil/OGC/0/inapplicable'
     URI_GA = 'http://pid.geoscience.gov.au/org/ga'
 
-    def __init__(self, request, uri, survey_id, xml=None):
+    def __init__(self, request, uri, survey_no, xml=None):
         views = {
             "gapd": View(
                 'GA Public Data View',
@@ -56,7 +56,7 @@ class SurveyRenderer(Renderer):
         
         super(SurveyRenderer, self).__init__(request, uri, views, "gapd")
 
-        self.survey_id = survey_id
+        self.survey_no = survey_no
         self.survey_name = None
         self.state = None
         self.operator = None
@@ -93,7 +93,7 @@ class SurveyRenderer(Renderer):
 
         # populate all instance variables from API
         # TODO: lazy load this, i.e. only populate if a controller that need populating is loaded which is every controller except for Alternates
-        self._populate_from_oracle_api(survey_id)
+        self._populate_from_oracle_api(survey_no)
 
         self.wkt_polygon = 'SRID={};POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(
             self.srid,
@@ -113,7 +113,7 @@ class SurveyRenderer(Renderer):
 
     def render(self):
         if self.survey_name is None:
-            return Response('Survey with ID {} not found.'.format(self.survey_id), status=404, mimetype='text/plain')
+            return Response('Survey with ID {} not found.'.format(self.survey_no), status=404, mimetype='text/plain')
         if self.view == "alternates":
             return self._render_alternates_view()
         elif self.view == 'gapd':
@@ -122,7 +122,7 @@ class SurveyRenderer(Renderer):
             else:
                 return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
         elif self.view == 'argus':  # XML only for this controller
-            return redirect(conf.XML_API_URL_SURVEY.format(self.survey_id), code=303)
+            return redirect(conf.XML_API_URL_SURVEY.format(self.survey_no), code=303)
         elif self.view == 'prov':
             if self.format == 'text/html':
                 return self.export_html(model_view=self.view)
@@ -137,7 +137,7 @@ class SurveyRenderer(Renderer):
                 self.alternates_template or 'alternates.html',
                 register_name='Survey Register',
                 class_uri=self.uri,
-                instance_uri=conf.BASE_URI_SURVEY + self.survey_id,
+                instance_uri=conf.BASE_URI_SURVEY + self.survey_no,
                 default_view_token=self.default_view_token,
                 views=self.views
             ),
@@ -154,14 +154,14 @@ class SurveyRenderer(Renderer):
             print('not valid xml')
             return False
 
-    def _populate_from_oracle_api(self, survey_id):
+    def _populate_from_oracle_api(self, survey_no):
         """
         Populates this instance with data from the Oracle ARGUS table API
         """
         # internal URI
         # os.environ['NO_PROXY'] = 'ga.gov.au'
         # call API
-        r = requests.get(conf.XML_API_URL_SURVEY.format(survey_id))
+        r = requests.get(conf.XML_API_URL_SURVEY.format(survey_no))
         # deal with missing XML declaration
         if "No data" in r.text:
             raise ParameterError('No Data')
@@ -320,7 +320,7 @@ class SurveyRenderer(Renderer):
 
         # URI for this survey
         base_uri = 'http://pid.geoscience.gov.au/survey/ga/'
-        this_survey = URIRef(base_uri + self.survey_id)
+        this_survey = URIRef(base_uri + self.survey_no)
 
         # define GA
         ga = URIRef(SurveyRenderer.URI_GA)
@@ -404,7 +404,7 @@ class SurveyRenderer(Renderer):
             elif model_view == 'prov':
                 # redundant relationships just for SVG viewing
                 # TODO: add in a recognition of Agent roles for the graph
-                g.add((this_survey, RDFS.label, Literal('Survey ' + self.survey_id, datatype=XSD.string)))
+                g.add((this_survey, RDFS.label, Literal('Survey ' + self.survey_no, datatype=XSD.string)))
                 g.add((ga, RDF.type, PROV.Agent))
                 g.add((this_survey, PROV.wasAssociatedWith, contractor_agent))
                 g.add((this_survey, PROV.wasAssociatedWith, operator_agent))
@@ -655,7 +655,7 @@ class SurveyRenderer(Renderer):
         if model_view == 'gapd':
             view_html = render_template(
                 'survey_gapd.html',
-                survey_id=self.survey_id,
+                survey_no=self.survey_no,
                 survey_name=self.survey_name,
                 state=self.state,
                 operator=self.operator,
@@ -698,7 +698,7 @@ class SurveyRenderer(Renderer):
         return render_template(
             'page_survey.html',
             view_html=view_html,
-            survey_id=self.survey_id,
+            survey_no=self.survey_no,
             end_date=self.end_date,
             survey_type=self.survey_type,
             date_now=datetime.now().strftime('%Y-%m-%d'),

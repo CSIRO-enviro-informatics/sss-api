@@ -9,7 +9,6 @@ from rdflib import Graph, URIRef, RDF, RDFS, XSD, OWL, Namespace, Literal, BNode
 import _config as conf
 from controller.oai_datestamp import *
 from .lookups import TERM_LOOKUP
-from _ldapi import LDAPI
 
 
 class SampleRenderer(Renderer):

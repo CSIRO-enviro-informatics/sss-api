@@ -15,13 +15,13 @@ def index():
     :return: HTTP Response (HTML page only)
     """
     return render_template(
-        'index.html'
+        'page_index.html'
     )
 
 
 @pages.route('/about')
 def about():
     return render_template(
-        'about.html'
+        'page_about.html'
     )
 
