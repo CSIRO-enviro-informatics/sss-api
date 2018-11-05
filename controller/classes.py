@@ -15,6 +15,43 @@ from model.survey_renderer import SurveyRenderer
 classes = Blueprint('classes', __name__)
 
 
+def _get_items(page, per_page, elem_tag):
+    items = []
+
+    r = None
+    if elem_tag == 'IGSN':
+        r = requests.get(conf.XML_API_URL_SAMPLESET.format(page, per_page), timeout=3)
+    elif elem_tag == 'ENO':
+        r = requests.get(conf.XML_API_URL_SITESET.format(page, per_page), timeout=3)
+    elif elem_tag == 'SURVEYID':
+        r = requests.get(conf.XML_API_URL_SURVEY_REGISTER.format(page, per_page), timeout=3)
+    else:
+        print('Invalid tag')
+        return None
+
+    xml = r.content
+
+    parser = etree.XMLParser(dtd_validation=False)
+
+    try:
+        etree.fromstring(xml, parser)
+        xml = BytesIO(xml)
+
+        labels = {
+            'IGSN': 'Sample ',
+            'ENO': 'Site ',
+            'SURVEYID': 'Survey '
+        }
+        for event, elem in etree.iterparse(xml):
+            if elem.tag == elem_tag:
+                items.append((elem.text, labels[elem.tag] + elem.text))
+
+        return items
+    except Exception:
+        print('not valid xml')
+        return None
+
+
 @classes.route('/sample/<string:igsn>')
 def sample(igsn):
     """
@@ -67,7 +104,6 @@ def samples():
         page = request.values.get('page') if request.values.get('page') is not None else 1
         per_page = request.values.get('per_page') if request.values.get('per_page') is not None else 20
         items = _get_items(page, per_page, "IGSN")
-
     except Exception as e:
         print(e)
         return Response('The Samples Register is offline', mimetype='text/plain', status=500)
@@ -83,38 +119,6 @@ def samples():
     )
 
     return r.render()
-
-
-def _get_items(page, per_page, elem_tag):
-    items = []
-
-    r = None
-    if elem_tag == 'IGSN':
-        r = requests.get(conf.XML_API_URL_SAMPLESET.format(page, per_page), timeout=3)
-    elif elem_tag == 'ENO':
-        r = requests.get(conf.XML_API_URL_SITESET.format(page, per_page), timeout=3)
-    elif elem_tag == 'SURVEYID':
-        r = requests.get(conf.XML_API_URL_SURVEY_REGISTER.format(page, per_page), timeout=3)
-    else:
-        print('Invalid tag')
-        return None
-
-    xml = r.content
-
-    parser = etree.XMLParser(dtd_validation=False)
-
-    try:
-        etree.fromstring(xml, parser)
-        xml = BytesIO(xml)
-
-        for event, elem in etree.iterparse(xml):
-            if elem.tag == elem_tag:
-                items.append(elem.text)
-
-        return items
-    except Exception:
-        print('not valid xml')
-        return None
 
 
 @classes.route('/site/')
@@ -156,8 +160,8 @@ def surveys():
     # get the total register count for survey
     try:
         no_of_items = 9200 #TODO: implement a survey count in Oracle XML API
-        page = 1
-        per_page = 20
+        page = request.values.get('page') if request.values.get('page') is not None else 1
+        per_page = request.values.get('per_page') if request.values.get('per_page') is not None else 20
         items = _get_items(page, per_page, "SURVEYID")
     except Exception as e:
         print(e)
@@ -175,7 +179,7 @@ def surveys():
     return r.render()
 
 
-@classes.route('/survey/<string:survey_id>')
-def survey(survey_id):
-    s = SurveyRenderer(request, conf.URI_SURVEY_CLASS, survey_id)
+@classes.route('/survey/<string:survey_no>')
+def survey(survey_no):
+    s = SurveyRenderer(request, conf.URI_SURVEY_CLASS, survey_no)
     return s.render()

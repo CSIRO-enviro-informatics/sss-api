@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <h1>Sites, Samples Surveys Linked Data API</h1>
+
+    <h2>About</h2>
+        <p>This <a href="https://en.wikipedia.org/wiki/Application_programming_interface">Application Programming Interface</a> (API) is designed to provide access to <a href="http://www.ga.gov.au">Geoscience Australia</a>'s Samples, Sites and Surveys Databases. GA has over 3 million samples that are each identified by an <a href="https://en.wikipedia.org/wiki/International_Geo_Sample_Number">International Geo Sample Number</a>, a digital catalogue of field Sites used by GA and Surveys (aerial magnetic etc.) stored in the ARGUS database.</p>
+
+    <h2>API Usage</h2>
+    <p>This API is a <a href="https://en.wikipedia.org/wiki/Linked_data">Linked Data</a> API in that it provides information about Samples and the list of Samples (the Sample Register) according to Linked Data principles. These include the principles that data items should be identified with persistent <a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">URI</a>s and that information should be provided in both human-readable and machine-readable formats. To these ends, this Linked Data API resolves URIs created using GA's persistent URI base, <code>http://pid.geoscience.gov.au</code>, and for each Sample, Site &amp; Survey, as well as the Registers of them, provides a series of different formats.</p>
+
+    <h3>Samples</h3>
+    <p>
+        <code>http://pid.geoscience.gov.au/sample/{IGSN}</code><br />
+        <a href="{{ url_for('classes.sample', igsn='AU239') }}">http://pid.geoscience.gov.au/sample/AU239</a>
+    </p>
+    <p>Sample URIs are of the form above where the IGSN is an identifier allocated by the International GeoSample Number community. These are typically of the form <code>AUxxx</code> where 'AU' prefix indicates Australia/Geoscience Australia and xxx is the sample number.</p>
+    <p>GA also stores sample records for other geoscience organisaitons, such as the Geological Survey of Victoria for which the prefix of 'AUVIC' is used, for example:</p>
+    <ul>
+        <li><a href="{{ url_for('classes.sample', igsn='AVIC1234') }}">AVIC1234</a></li>
+    </ul>
+    <p>Each sample's metadata can be accessed via a landing page (HTML web page) or via a number of different machine-readable <em>views</em>. All the views and formats for a Sample (and Sites, Survey and the Registers of them) can be listed for any item by going to it's <em>Alternates View</em> which can be found by appending <code>?_view=alternates</code> to any web address supported by the API, e.g., for the Sample AU239:</p>
+    <ul>
+        <li><a href="{{ url_for('classes.sample', igsn='AU239') }}?_view=alternates">http://pid.geoscience.gov.au/sample/AU239<strong>?_view=alternates</strong></a></li>
+    </ul>
+
+    <h3>Sites</h3>
+    <p>
+        <code>http://pid.geoscience.gov.au/site/ga/{SITE_NO}</code><br />
+        <a href="{{ url_for('classes.site', site_no='10') }}">http://pid.geoscience.gov.au/site/ga/10</a>
+    </p>
+
+    <h3>Surveys</h3>
+    <p>
+        <code>http://pid.geoscience.gov.au/survey/ga/{SITE_NO}</code><br />
+        <a href="{{ url_for('classes.survey', survey_no='100031167') }}">http://pid.geoscience.gov.au/survey/ga/100031167</a>
+    </p>
+    <p>This system provides the landing pages for metadata about Surveys stored in GA's corporate database known as ARGUS.</p>
+
+    <!--
+    <h2>OGC WMS Web Service</h2>
+
+    <p>While this web page describes this system for a human to read, it's not so good for machines, so we also provide a machine-readable version. We have implemented, as a test, an <a href="http://www.opengeospatial.org/">OGC</a> <a href="http://www.opengeospatial.org/standards/wms">WMS web service</a>'s <em>GetCapabilities</em> function which:</p>
+    <blockquote><em>Retrieves metadata about the service, including supported operations and parameters</em></blockquote>
+    <p>To view the <em>GetCapabilities</em> function results for this API, see:</p>
+    <ul>
+        <li><a href="{{ url_for('controller.index') }}?_view=getcapabilities&_format=text/xml">{{ url_for('controller.index') }}?_view=getcapabilities&_format=text/xml</a></li>
+    </ul>
+
+    <h2>Views</h2>
+
+    <p>This API uses the the <a href="https://github.com/RDFLib/pyLDAPI">pyLDAPI</a>, a tool to deliver APIs in Linked Data.
+
+    -->
+    <h2>Code</h2>
+    <p>The code for this application is available at: <p><em>Coming soon!</em></p></p>
+
+    <h2>Contact</h2>
+    <p>To contact the managers of this API, please call <a href="http://www.ga.gov.au">Geoscience Australia</a> or email the Data Manager directly: <code>dataman@ga.gov.au</code>.</p>
+
+
+
+{% endblock %}

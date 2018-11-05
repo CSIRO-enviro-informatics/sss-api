@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+    <h1>Sites, Samples Surveys Linked Data API</h1>
+    <p>
+        This is <a href="http://www.ga.gov.au">Geoscience Australia</a>'s <a href="https://en.wikipedia.org/wiki/Linked_data">Linked Data</a> <a href="https://en.wikipedia.org/wiki/Application_programming_interface">API</a> for <b>Samples</b>, <b>Sites</b> and <b>Surveys</b>.
+    </p>
+
+    <h2>Starting points</h2>
+    <h3>Linked Data Examples</h3>
+    <ul>
+        <li>
+            <a href="http://pid.geoscience.gov.au/sample/">Sample Register</a> - all Samples
+            <ul>
+                <li><a href="http://pid.geoscience.gov.au/sample/AU1">Sample AU1</a> - a Sample</li>
+            </ul>
+        </li>
+        <li>
+            <a href="http://pid.geoscience.gov.au/site/ga/">Site Register</a> - all Sites
+            <ul>
+                <li><a href="http://pid.geoscience.gov.au/site/ga/2">Site 2</a> - a Site</li>
+            </ul>
+        </li>
+        <li>
+            <a href="http://pid.geoscience.gov.au/survey/ga/">Survey Register</a> - all Surveys
+            <ul>
+                <li><a href="http://pid.geoscience.gov.au/survey/ga/01020013">Survey 01020013</a> - a Survey</li>
+            </ul>
+        </li>
+    </ul>
+    <h3>Other endpoints</h3>
+    <p>
+        In addition to acting as a Linked Data API, this system also supports an
+        <a hre="https://en.wikipedia.org/wiki/Open_Archives_Initiative_Protocol_for_Metadata_Harvesting">Open Archives
+        Initiative Protocol for Metadata Harvesting</a> endpoint to allow bulk harvesting of Samples:
+    </p>
+    <ul>
+        <li><a href="/oai">/oai</a></li>
+    </ul>
+
+    <h2>More information</h2>
+    <p>See the <a href="/about">About Page</a> for more information.</p>
+
+{% endblock %}

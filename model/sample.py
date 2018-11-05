@@ -7,7 +7,6 @@ from lxml import etree
 from lxml import objectify
 from rdflib import Graph, URIRef, RDF, RDFS, XSD, OWL, Namespace, Literal, BNode
 import _config as conf
-from _ldapi.__init__ import LDAPI
 from controller.oai_datestamp import *
 from .lookups import TERM_LOOKUP
 

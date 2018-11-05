@@ -1,7 +1,7 @@
 {% extends "survey_page_layout.html" %}
 
 {% block content %}
-    <h1>Survey {{ survey_id }}</h1>
+    <h1>Survey {{ survey_no }}</h1>
     <style>
         #map {
             width: 568px;
@@ -45,13 +45,13 @@
     {{ view_html|safe }}
 
     <h2>Other views</h2>
-    <!--<p>Other model views of a Survey are listed in the <a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_id }}?_view=alternates">Alternates View</a>.</p>-->
-    <p>Other views of this Sample are listed in the <a href="{{ url_for('classes.survey', survey_id=survey_id) }}?_view=alternates">Alternates View</a>.</p>
+    <!--<p>Other model views of a Survey are listed in the <a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_no }}?_view=alternates">Alternates View</a>.</p>-->
+    <p>Other views of this Sample are listed in the <a href="{{ url_for('classes.survey', survey_no=survey_no) }}?_view=alternates">Alternates View</a>.</p>
 
     <h2>Citation</h2>
     <p>If you wish to cite this survey as you would a publication, please use the following format:</p>
     <code style="display:block; margin: 0 5em 0 5em;">
-        Geoscience Australia ({{ end_date.strftime('%Y') }}) "Survey {{ survey_id }}". {{ survey_type }} geophysical data collection survey. Geoscience Australia. Accessed {{ date_now }}. <a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_id }}">http://pid.geoscience.gov.au/survey/ga/{{ survey_id }}</a>
+        Geoscience Australia ({{ end_date.strftime('%Y') }}) "Survey {{ survey_no }}". {{ survey_type }} geophysical data collection survey. Geoscience Australia. Accessed {{ date_now }}. <a href="http://pid.geoscience.gov.au/survey/ga/{{ survey_no }}">http://pid.geoscience.gov.au/survey/ga/{{ survey_no }}</a>
     </code>
 
 {% endblock %}
