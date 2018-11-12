@@ -926,6 +926,7 @@ class SampleRenderer(Renderer):
     def _get_rdf_mimetype(self, rdf_mime):
         return self.RDF_SERIALIZER_MAP[rdf_mime]
 
+
     def _is_xml_export_valid(self, xml_string):
         """
         Validate and export of this Sample instance in XML using the XSD files from the dev branch

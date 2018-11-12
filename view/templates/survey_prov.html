@@ -1,0 +1,10 @@
+<h3>PROV data graph</h3>
+<div id="network" style="width:100%; height:300px;"></div>
+<script type="text/javascript" src="{{ url_for('static', filename='js/vis.js') }}"></script>
+<link href="{{ url_for('static', filename='css/vis-network.min.css') }}" rel="stylesheet" type="text/css" />
+<script type="text/javascript">
+    {{ visjs|safe }}
+</script>
+
+<h3>PROV data</h3>
+<textarea id="prov_turtle" style="width:100%; height:360px;">{{ prov_turtle }}</textarea>
