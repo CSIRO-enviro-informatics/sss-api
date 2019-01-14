@@ -158,6 +158,7 @@ class SampleRenderer(Renderer):
         self.custodian_uri = self.URI_GA  # default
         self.custodian_label = 'Geoscience Australia'  # default
         self.collector = None
+        self.not_found = False
 
         if xml is not None:  # even if there are values for Oracle API URI and IGSN, load from XML file if present
             self._populate_from_xml_file(xml)
@@ -189,7 +190,7 @@ class SampleRenderer(Renderer):
         print(self.igsn)
         r = requests.get(config.XML_API_URL_SAMPLE.format(self.igsn))
         if "No data" in r.content.decode('utf-8'):
-            raise ParameterError('No Data')
+            self.not_found = True
 
         if self.validate_xml(r.content):
             self._populate_from_xml_file(r.content)
@@ -309,8 +310,8 @@ class SampleRenderer(Renderer):
                 return '<a href="{}">{}</a>'.format(vocab_uri, vocab_uri.split('/')[-1])
 
     def render(self):
-        # if self.sample_no is None:
-        #     return Response('Sample with IGSN {} not found.'.format(self.igsn), status=404, mimetype='text/plain')
+        if self.not_found:
+             return Response('Sample with IGSN {} not found.'.format(self.igsn), status=404, mimetype='text/plain')
 
         if self.view == 'alternates':
             return self._render_alternates_view()
