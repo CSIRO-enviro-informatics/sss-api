@@ -239,7 +239,9 @@ class SampleRenderer(Renderer):
                     self.elem_info = root.ROW.GEOM.SDO_ELEM_INFO
                 if hasattr(root.ROW.GEOM, 'SDO_ORDINATES'):
                     self.ordinates = root.ROW.GEOM.SDO_ORDINATES.getchildren()
+                    print(self.ordinates)
                     # calculate centroid values to centre a map
+                    print(self.ordinates[1:-2:2])
                     self.centroid_lat = round(sum(self.ordinates[1:-2:2]) / len(self.ordinates[:-2:2]), 2)
                     self.centroid_lon = round(sum(self.ordinates[:-2:2]) / len(self.ordinates[1:-2:2]), 2)
                     # self.ordinates = zip(*[iter(raw_ordinates)]*2)
@@ -269,10 +271,12 @@ class SampleRenderer(Renderer):
                 self.entity_type = self._make_vocab_uri(root.ROW.ENTITY_TYPE, 'entity_type')
             if hasattr(root.ROW, 'HOLE_MIN_LONGITUDE'):
                 self.hole_long_min = root.ROW.HOLE_MIN_LONGITUDE
+                self.x = self.hole_long_min
             if hasattr(root.ROW, 'HOLE_MAX_LONGITUDE'):
                 self.hole_long_max = root.ROW.HOLE_MAX_LONGITUDE
             if hasattr(root.ROW, 'HOLE_MIN_LATITUDE'):
                 self.hole_lat_min = root.ROW.HOLE_MIN_LATITUDE
+                self.y = self.hole_lat_min
             if hasattr(root.ROW, 'HOLE_MAX_LATITUDE'):
                 self.hole_lat_max = root.ROW.HOLE_MAX_LATITUDE
             if hasattr(root.ROW, 'ORIGINATOR'):

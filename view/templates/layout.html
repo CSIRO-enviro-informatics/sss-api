@@ -1,12 +1,21 @@
-{% if organisation_branding is not defined %}
+<!--set the organisation_branding based on the igsn number.
+ - GA numbers have only AU
+ - GSV has VI at the start of the number etc...
+ -->
+{% if igsn is not defined %}
     {% set organisation_branding = 'ga' %}
+{% elif "QL" in igsn %}
+    {% set organisation_branding = 'gsq' %}
 {% endif %}
 <!DOCTYPE html>
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>SSS API</title>
+    <title>SSS API </title>
     {% set css = organisation_branding + '_theme.css' %}
+    <!--set the master css theme -->
+     <link rel="stylesheet" href="{{url_for('static', filename='css/master_theme.css')}}" />
+     <!--set the organisation specific css theme to overwrite the master theme where styles have been defined -->
     <link rel="stylesheet" href="{{url_for('static', filename='css/' + css)}}" />
     <link rel="icon" href="{{url_for('static', filename='img/ga/favicon.ico')}}">
 </head>

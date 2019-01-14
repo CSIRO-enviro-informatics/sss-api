@@ -1,0 +1,98 @@
+/* version 2 */
+
+
+/*
+*	Header
+*/
+
+#header img {
+    height:18%;
+}
+
+@media only screen and (max-width: 1024px) {
+  #contacts .offices-information {
+    flex-wrap: wrap; }
+  #contacts .offices {
+    justify-content: space-between;
+    width: 100%;
+    order: 2; }
+  #contacts .leaflet-container.leaflet-grab.leaflet-touch-drag.leaflet-touch-zoom {
+    width: 100%;
+    margin: 0 0 40px 0;
+    order: 1; }
+  #contacts .office {
+    margin: 0 0 2%;
+    width: 49%; } }
+
+@media only screen and (max-width: 768px) {
+  #contacts form.contact-type select {
+    width: 80%; } }
+
+@media only screen and (max-width: 768px) {
+  #contacts form.services-select select {
+    width: 100%; }
+  #contacts .office {
+    width: 100%; } }
+
+.footer-connect {
+  padding: 20px 0;
+  background: #327085;
+  color: #fff; }
+  .footer-connect .flex {
+    display: flex;
+    justify-content: space-around; }
+    .footer-connect .flex > div {
+      width: 30%;
+      display: flex;
+      align-items: center; }
+    .footer-connect .flex ul {
+      list-style: none; }
+    .footer-connect .flex a:link,
+    .footer-connect .flex a:active,
+    .footer-connect .flex a:visited {
+      color: #fff;
+      text-decoration: none; }
+    .footer-connect .flex a:focus,
+    .footer-connect .flex a:hover {
+      outline: none;
+      text-decoration: underline; }
+  .footer-connect .feedback p {
+    padding-right: 20px;
+    position: relative; }
+    .footer-connect .feedback p::before, .footer-connect .feedback p::after {
+      display: block;
+      position: absolute;
+      right: 0;
+      content: '';
+      width: 12px;
+      height: 4px;
+      border-radius: 3px;
+      background: #fff;
+      transition: all .3s ease; }
+    .footer-connect .feedback p::before {
+      top: 7px;
+      transform: rotate(45deg); }
+    .footer-connect .feedback p::after {
+      top: 13px;
+      transform: rotate(-45deg); }
+    .footer-connect .feedback p.open::before {
+      top: 10px;
+      transform: rotate(-45deg);
+      right: -6px; }
+    .footer-connect .feedback p.open::after {
+      top: 10px;
+      transform: rotate(45deg); }
+    .footer-connect .feedback p:hover {
+      text-decoration: underline;
+      cursor: pointer; }
+  .footer-connect .share p {
+    margin-right: 20px; }
+  .footer-connect .share svg {
+    height: 30px;
+    width: 37px;
+    fill: #fff;
+    opacity: .8;
+    transition: opacity .2s ease; }
+  .footer-connect .share a:focus svg,
+  .footer-connect .share a:hover svg {
+    opacity: 1; }

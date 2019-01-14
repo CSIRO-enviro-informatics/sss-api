@@ -27,6 +27,7 @@ class RegisterRenderer(Renderer):
 
         self._get_details_from_oracle_api(page, per_page)
 
+    # not used.
     def render(self, view, mimetype, extra_headers=None):
         if view == 'reg':
             # is an RDF format requested?
