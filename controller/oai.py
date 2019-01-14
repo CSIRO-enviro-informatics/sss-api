@@ -42,8 +42,8 @@ def oai():
     # call underlying implementation, based on the verb, since all parameters are valid
     if request.values.get('verb') == 'GetRecord':
         try:
-            from model.sample import Sample
-            s = Sample(request.values.get('identifier'))
+            from model.sample import SampleRenderer
+            s = SampleRenderer(request)
 
             if s.date_modified is not None:
                 date_modified = datetime_to_datestamp(s.date_modified)
