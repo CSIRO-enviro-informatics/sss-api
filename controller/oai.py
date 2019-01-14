@@ -45,6 +45,20 @@ def oai():
             from model.sample import SampleRenderer
             s = SampleRenderer(request)
 
+            if s.not_found:
+                return Response(
+                    render_template(
+                        'oai_error.xml',
+                        igsn=request.values.get('identifier'),
+                        metadataPrefix=request.values.get('metadataPrefix'),
+                        response_date=response_date,
+                        request_uri=request.url,
+                        oai_code='idDoesNotExist',
+                        message='No matching identifier (IGSN) in the GA Samples Catalogue'
+                    ),
+                    mimetype = 'text/xml'
+                )
+
             if s.date_modified is not None:
                 date_modified = datetime_to_datestamp(s.date_modified)
             else:
