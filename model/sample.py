@@ -186,8 +186,6 @@ class SampleRenderer(Renderer):
         # internal URI
         # os.environ['NO_PROXY'] = 'ga.gov.au'
         # call API
-        print('IGSN')
-        print(self.igsn)
         r = requests.get(config.XML_API_URL_SAMPLE.format(self.igsn))
         if "No data" in r.content.decode('utf-8'):
             self.not_found = True
@@ -311,7 +309,7 @@ class SampleRenderer(Renderer):
 
     def render(self):
         if self.not_found:
-             return Response('Sample with IGSN {} not found.'.format(self.igsn), status=404, mimetype='text/plain')
+            return Response('Sample with IGSN {} not found.'.format(self.igsn), status=404, mimetype='text/plain')
 
         if self.view == 'alternates':
             return self._render_alternates_view()
@@ -632,7 +630,7 @@ class SampleRenderer(Renderer):
         g = Graph()
 
         # URI for this sample
-        this_sample = URIRef(config.REGISTER_BASE_URI + self.igsn)
+        this_sample = URIRef(config.URI_SAMPLE_INSTANCE_BASE + self.igsn)
         g.add((this_sample, RDFS.label, Literal('Sample igsn:' + self.igsn, datatype=XSD.string)))
 
         # define GA
@@ -641,7 +639,7 @@ class SampleRenderer(Renderer):
         # pingback endpoint
         PROV = Namespace('http://www.w3.org/ns/prov#')
         g.bind('prov', PROV)
-        g.add((this_sample, PROV.pingback, URIRef(config.REGISTER_BASE_URI + self.igsn + '/pingback')))
+        g.add((this_sample, PROV.pingback, URIRef(config.URI_SAMPLE_INSTANCE_BASE + self.igsn + '/pingback')))
         SKOS = Namespace('http://www.w3.org/2004/02/skos/core#')
         g.bind('skos', SKOS)
         ADMS = Namespace('http://www.w3.org/ns/adms#')

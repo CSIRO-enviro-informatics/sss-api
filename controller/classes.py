@@ -123,7 +123,7 @@ def samples():
 
 @classes.route('/site/ga/<string:site_no>')
 def site(site_no):
-    s = SiteRenderer(request, config.URI_SITE_INSTANCE_BASE + site_no, site_no)
+    s = SiteRenderer(request)
     return s.render()
 
 
@@ -173,7 +173,7 @@ def surveys():
         'Survey Register',
         'A register of Surveys',
         items,
-        [config.BASE_URI_SURVEY],
+        [config.URI_SURVEY_CLASS],
         no_of_items
     )
     return r.render()
@@ -181,5 +181,5 @@ def surveys():
 
 @classes.route('/survey/ga/<string:survey_no>')
 def survey(survey_no):
-    s = SurveyRenderer(request, config.URI_SURVEY_CLASS, survey_no)
+    s = SurveyRenderer(request)
     return s.render()
