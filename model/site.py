@@ -4,7 +4,7 @@ from flask import Response, render_template
 from lxml import etree
 from lxml import objectify
 from rdflib import Graph, URIRef, RDF, RDFS, XSD, OWL, Namespace, Literal, BNode
-import _config as conf
+import _config as config
 from datetime import datetime
 import json
 json.encoder.FLOAT_REPR = lambda f: ("%.2f" % f)
@@ -13,7 +13,7 @@ json.encoder.FLOAT_REPR = lambda f: ("%.2f" % f)
 class SiteRenderer(Renderer):
     URI_GA = 'http://pid.geoscience.gov.au/org/ga/geoscienceausralia'
 
-    def __init__(self, request, uri, site_no, xml=None):
+    def __init__(self, request, xml=None):
         views = {
             "pdm": View(
                 "GA's Public Data Model View",
@@ -32,9 +32,10 @@ class SiteRenderer(Renderer):
             )
         }
 
-        super(SiteRenderer, self).__init__(request, uri, views, 'pdm')
+        self.site_no = request.base_url.split('/')[-1]
 
-        self.site_no = site_no
+        super(SiteRenderer, self).__init__(request, config.URI_SITE_INSTANCE_BASE + self.site_no, views, 'pdm')
+
         self.site_type = None
         self.description = None
         self.status = None
@@ -43,6 +44,7 @@ class SiteRenderer(Renderer):
         self.centroid_x = None
         self.centroid_y = None
         self.coords = None
+        self.not_found = False
 
         if xml is not None:  # even if there are values for Oracle API URI and IGSN, load from XML file if present
             self._populate_from_xml_file(xml)
@@ -161,12 +163,20 @@ class SiteRenderer(Renderer):
         :param eno: (from class) the Entity Number of the Site desired
         :return: None
         """
+        """
+        Populates this instance with data from the Oracle Samples table API
+
+        :param oracle_api_samples_url: the Oracle XML API URL string for a single sample
+        :param igsn: the IGSN of the sample desired
+        :return: None
+        """
         # internal URI
         # os.environ['NO_PROXY'] = 'ga.gov.au'
         # call API
-        r = requests.get(conf.XML_API_URL_SITE.format(self.site_no))
+        r = requests.get(config.XML_API_URL_SITE.format(self.site_no))
         if "No data" in r.content.decode('utf-8'):
-            raise ParameterError('No Data')
+            self.not_found = True
+
         if self.validate_xml(r.content):
             self._populate_from_xml_file(r.content)
             return True
@@ -229,8 +239,9 @@ class SiteRenderer(Renderer):
         return True
 
     def render(self):
-        if self.site_no is None:
-            return Response('Site {} not found.'.format(self.site_no), status=404, mimetype='text/plain')
+        if self.not_found:
+            return Response('Sample {} not found.'.format(self.site_no), status=404, mimetype='text/plain')
+
         if self.view == 'alternates':
             return self._render_alternates_view()
         elif self.view == 'pdm':
@@ -288,7 +299,7 @@ class SiteRenderer(Renderer):
             },
             'features': {
                 'type': 'Feature',
-                'id': '{}{}'.format(conf.URI_SITE_INSTANCE_BASE, self.site_no),
+                'id': '{}{}'.format(config.URI_SITE_INSTANCE_BASE, self.site_no),
                 'geometry': self._make_geojson_geometry(),
                 'crs': {
                     'type': 'link',
@@ -302,7 +313,7 @@ class SiteRenderer(Renderer):
                     'name': '{} {}'.format('Site', self.site_no),
                     'siteDescription': self.description,
                     'siteLicence': 'open-CC',  # http://cloud.neii.gov.au/neii/neii-licencing/version-1/concept
-                    'siteURL': '{}{}'.format(conf.URI_SITE_INSTANCE_BASE, self.site_no),
+                    'siteURL': '{}{}'.format(config.URI_SITE_INSTANCE_BASE, self.site_no),
                     'operatingAuthority': {
                         'name': 'Geoscience Australia',
                         'id': self.URI_GA
@@ -355,7 +366,7 @@ class SiteRenderer(Renderer):
         g.bind('geo', GEO)
 
         # URI for this site
-        this_site = URIRef(conf.URI_SITE_INSTANCE_BASE + self.site_no)
+        this_site = URIRef(config.URI_SITE_INSTANCE_BASE + self.site_no)
         g.add((this_site, RDF.type, URIRef(self.site_type)))
         g.add((this_site, RDF.type, URIRef('http://www.w3.org/2002/07/owl#NamedIndividual')))
         g.add((this_site, RDFS.label, Literal('Site ' + self.site_no, datatype=XSD.string)))
@@ -414,7 +425,7 @@ class SiteRenderer(Renderer):
             )
 
         # add in the Pingback header links as they are valid for all HTML views
-        pingback_uri = conf.URI_SITE_INSTANCE_BASE + self.site_no + "/pingback"
+        pingback_uri = config.URI_SITE_INSTANCE_BASE + self.site_no + "/pingback"
         headers = {
             'Link': '<{}>;rel = "http://www.w3.org/ns/prov#pingback"'.format(pingback_uri)
         }
@@ -428,7 +439,7 @@ class SiteRenderer(Renderer):
                 view_title=view_title,
                 sample_table_html=sample_table_html,
                 date_now=datetime.now().strftime('%d %B %Y'),
-                gm_key=conf.GOOGLE_MAPS_API_KEY,
+                gm_key=config.GOOGLE_MAPS_API_KEY,
                 google_maps_js=self._generate_google_map_js(),
                 lat=self.centroid_y,
                 lon=self.centroid_x,

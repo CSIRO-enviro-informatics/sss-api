@@ -3,7 +3,7 @@ from io import BytesIO
 import requests
 from lxml import etree
 import _config as conf
-from model import Sample
+from model import sample
 from controller.oai_datestamp import *
 from controller.oai_errors import *
 import math
@@ -105,7 +105,8 @@ def list_records(metadataPrefix, resumptionToken=None, from_=None, until=None):
     samples = []
 
     for event, elem in etree.iterparse(BytesIO(r.content), tag='ROW'):
-        samples.append(get_obj_vars_as_dict(Sample(None, '<root>{}</root>'.format(etree.tostring(elem)))))
+        samples.append(get_obj_vars_as_dict(
+            sample.SampleRenderer(None, xml='<root>{}</root>'.format(etree.tostring(elem)))))
 
     resumption_token = get_resumption_token(metadataPrefix, resumptionToken, from_, until)
 
@@ -134,7 +135,7 @@ def list_records_xml(metadataPrefix, resumptionToken=None, from_=None, until=Non
 
     for event, elem in etree.iterparse(BytesIO(r.content), tag='ROW'):
         # create a Sample for each XML ROW
-        sample = Sample(None, '<root>{}</root>'.format(etree.tostring(elem)))
+        sample = sample.SampleRenderer(None, '<root>{}</root>'.format(etree.tostring(elem)))
         if sample.date_modified is not None:
             datestamp = datetime_to_datestamp(sample.date_modified)
         else:

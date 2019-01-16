@@ -2,6 +2,7 @@
 This file contains all the HTTP routes for basic pages (usually HTML)
 """
 from flask import Blueprint, render_template
+import _config as config
 
 
 pages = Blueprint('controller', __name__)
@@ -15,7 +16,8 @@ def index():
     :return: HTTP Response (HTML page only)
     """
     return render_template(
-        'page_index.html'
+        'page_index.html',
+        api_endpoint=config.API_ENDPOINT
     )
 
 
