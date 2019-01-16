@@ -5,7 +5,7 @@ from rdflib import Graph, URIRef, RDF, RDFS, XSD, Namespace, Literal, BNode
 import requests
 from datetime import datetime
 from flask import Response, render_template, redirect
-import _config as conf
+import _config as config
 
 
 class SurveyRenderer(Renderer):
@@ -19,7 +19,7 @@ class SurveyRenderer(Renderer):
     URI_INAPPLICABLE = 'http://www.opengis.net/def/nil/OGC/0/inapplicable'
     URI_GA = 'http://pid.geoscience.gov.au/org/ga'
 
-    def __init__(self, request, uri, survey_no, xml=None):
+    def __init__(self, request, xml=None):
         views = {
             "gapd": View(
                 'GA Public Data View',
@@ -53,10 +53,11 @@ class SurveyRenderer(Renderer):
                 namespace="http://www.w3.org/ns/prov/"
             )
         }
-        
-        super(SurveyRenderer, self).__init__(request, uri, views, "gapd")
 
-        self.survey_no = survey_no
+        self.survey_no = request.base_url.split('/')[-1]
+        
+        super(SurveyRenderer, self).__init__(request, config.URI_SURVEY_INSTANCE_BASE + self.survey_no, views, "gapd")
+
         self.survey_name = None
         self.state = None
         self.operator = None
@@ -93,16 +94,13 @@ class SurveyRenderer(Renderer):
 
         # populate all instance variables from API
         # TODO: lazy load this, i.e. only populate if a controller that need populating is loaded which is every controller except for Alternates
-        self._populate_from_oracle_api(survey_no)
+        if xml is not None:  # even if there are values for Oracle API URI and IGSN, load from XML file if present
+            self._populate_from_xml_file(xml)
+        else:
+            self._populate_from_oracle_api()
 
-        self.wkt_polygon = 'SRID={};POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(
-            self.srid,
-            self.w_long, self.n_lat,
-            self.e_long, self.n_lat,
-            self.e_long, self.s_lat,
-            self.e_long, self.s_lat,
-            self.w_long, self.n_lat
-        )
+        # these coordinate things can only be calculated after populating variables from XML file / XML API
+        self.wkt_polygon = self._generate_wkt()
 
         self.centroid_lat = (self.n_lat + self.s_lat) / 2
         self.centroid_lon = (self.e_long + self.w_long) / 2
@@ -122,7 +120,7 @@ class SurveyRenderer(Renderer):
             else:
                 return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
         elif self.view == 'argus':  # XML only for this controller
-            return redirect(conf.XML_API_URL_SURVEY.format(self.survey_no), code=303)
+            return redirect(config.XML_API_URL_SURVEY.format(self.survey_no), code=303)
         elif self.view == 'prov':
             if self.format == 'text/html':
                 return self.export_html(model_view=self.view)
@@ -137,7 +135,7 @@ class SurveyRenderer(Renderer):
                 self.alternates_template or 'alternates.html',
                 register_name='Survey Register',
                 class_uri=self.uri,
-                instance_uri=conf.BASE_URI_SURVEY + self.survey_no,
+                instance_uri=config.BASE_URI_SURVEY + self.survey_no,
                 default_view_token=self.default_view_token,
                 views=self.views
             ),
@@ -154,14 +152,14 @@ class SurveyRenderer(Renderer):
             print('not valid xml')
             return False
 
-    def _populate_from_oracle_api(self, survey_no):
+    def _populate_from_oracle_api(self):
         """
         Populates this instance with data from the Oracle ARGUS table API
         """
         # internal URI
         # os.environ['NO_PROXY'] = 'ga.gov.au'
         # call API
-        r = requests.get(conf.XML_API_URL_SURVEY.format(survey_no))
+        r = requests.get(config.XML_API_URL_SURVEY.format(self.survey_no))
         # deal with missing XML declaration
         if "No data" in r.text:
             raise ParameterError('No Data')
@@ -288,20 +286,30 @@ class SurveyRenderer(Renderer):
         if hasattr(root.ROW, 'RAD_INSTRUMENT'):
             self.rad_instrument = root.ROW.RAD_INSTRUMENT
 
-    def _generate_survey_gml(self):
-        if self.z is not None:
-            gml = '<gml:Point srsDimension="3" srsName="https://epsg.io/' + self.srid + '">' \
-                  '<gml:pos>' + self.x + ' ' + self.y + ' ' + self.z + '</gml:pos>' \
-                  '</gml:Point>'
-        else:
-            if self.srid is not None and self.x is not None and self.y is not None:
-                gml = '<gml:Point srsDimension="2" srsName="https://epsg.io/' + self.srid + '">' \
-                      '<gml:pos>' + self.x + ' ' + self.y + '</gml:pos>' \
-                      '</gml:Point>'
-            else:
-                gml = ''
+    # def _generate_survey_gml(self):
+    #     if self.z is not None:
+    #         gml = '<gml:Point srsDimension="3" srsName="https://epsg.io/' + self.srid + '">' \
+    #               '<gml:pos>' + self.x + ' ' + self.y + ' ' + self.z + '</gml:pos>' \
+    #               '</gml:Point>'
+    #     else:
+    #         if self.srid is not None and self.x is not None and self.y is not None:
+    #             gml = '<gml:Point srsDimension="2" srsName="https://epsg.io/' + self.srid + '">' \
+    #                   '<gml:pos>' + self.x + ' ' + self.y + '</gml:pos>' \
+    #                   '</gml:Point>'
+    #         else:
+    #             gml = ''
+    #
+    #     return gml
 
-        return gml
+    def _generate_wkt(self):
+        return 'SRID={};POLYGON(({} {}, {} {}, {} {}, {} {}, {} {}))'.format(
+            self.srid,
+            self.w_long, self.n_lat,
+            self.e_long, self.n_lat,
+            self.e_long, self.s_lat,
+            self.e_long, self.s_lat,
+            self.w_long, self.n_lat
+        )
 
     def export_rdf(self, model_view='default', rdf_mime='text/turtle'):
         """
@@ -319,8 +327,7 @@ class SurveyRenderer(Renderer):
         g = Graph()
 
         # URI for this survey
-        base_uri = 'http://pid.geoscience.gov.au/survey/ga/'
-        this_survey = URIRef(base_uri + self.survey_no)
+        this_survey = URIRef(config.URI_SURVEY_INSTANCE_BASE + self.survey_no)
 
         # define GA
         ga = URIRef(SurveyRenderer.URI_GA)
@@ -391,7 +398,7 @@ class SurveyRenderer(Renderer):
                 g.add((this_survey, PROV.hadLocation, geometry))
                 g.add((geometry, RDF.type, SAMFL.Polygon))
                 # g.add((geometry, GEOSP.asGML, gml))
-                g.add((geometry, GEOSP.asWKT, Literal(self.wkt_polygon, datatype=GEOSP.wktLiteral)))
+                g.add((geometry, GEOSP.asWKT, Literal(self._generate_wkt(), datatype=GEOSP.wktLiteral)))
 
                 # GAPD model required namespaces
                 GAPD = Namespace('http://pid.geoscience.gov.au/def/ont/gapd#')
@@ -482,7 +489,7 @@ class SurveyRenderer(Renderer):
             g.bind('geosp', GEOSP)
             geometry = BNode()
             g.add((geometry, RDF.type, GEOSP.Geometry))
-            g.add((geometry, GEOSP.asWKT, Literal(self.wkt_polygon, datatype=GEOSP.wktLiteral)))
+            g.add((geometry, GEOSP.asWKT, Literal(self._generate_wkt(), datatype=GEOSP.wktLiteral)))
             g.add((sample, GEOSP.hasGeometry, geometry))  # associate
 
         return g.serialize(format=self._get_rdf_mimetype(rdf_mime))
@@ -652,7 +659,16 @@ class SurveyRenderer(Renderer):
          </ROW>
         </ROWSET>
         '''
-        if model_view == 'gapd':
+        if model_view == 'prov':
+            prov_turtle = self.export_rdf('prov', 'text/turtle')
+            g = Graph().parse(data=prov_turtle, format='turtle')
+
+            view_html = render_template(
+                'survey_prov.html',
+                visjs=self._make_vsjs(g),
+                prov_turtle=prov_turtle,
+            )
+        else:  # model_view == 'gapd':
             view_html = render_template(
                 'survey_gapd.html',
                 survey_no=self.survey_no,
@@ -685,15 +701,6 @@ class SurveyRenderer(Renderer):
                 rad_instrument=self.rad_instrument,
                 wkt_polygon=self.wkt_polygon
             )
-        elif model_view == 'prov':
-            prov_turtle = self.export_rdf('prov', 'text/turtle')
-            g = Graph().parse(data=prov_turtle, format='turtle')
-
-            view_html = render_template(
-                'survey_prov.html',
-                visjs=self._make_vsjs(g),
-                prov_turtle=prov_turtle,
-            )
 
         return render_template(
             'page_survey.html',
@@ -708,7 +715,7 @@ class SurveyRenderer(Renderer):
             s_lat=self.s_lat,
             w_long=self.w_long,
             e_long=self.e_long,
-            gm_key=conf.GOOGLE_MAPS_API_KEY
+            gm_key=config.GOOGLE_MAPS_API_KEY
         )
 
 

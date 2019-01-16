@@ -143,9 +143,9 @@ td#quote {
 *	Nav
 */
 div#ga-nav {
+    text-align:left;
 	font-size: 1em;
 	font-family:sans-serif;
-	text-align:right;
 	margin:20px 0 0 0;
 }
 

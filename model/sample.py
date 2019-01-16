@@ -1,23 +1,23 @@
-
+from flask import Response, render_template
+from pyldapi import Renderer, View
 from datetime import datetime
 from io import StringIO
 import requests
-from flask import Response, render_template
 from lxml import etree
 from lxml import objectify
 from rdflib import Graph, URIRef, RDF, RDFS, XSD, OWL, Namespace, Literal, BNode
-import _config as conf
+import _config as config
 from controller.oai_datestamp import *
 from .lookups import TERM_LOOKUP
 
 
-class Sample:
+class SampleRenderer(Renderer):
     """
-    This class represents a Sample and methods in this class allow a sample to be loaded from GA's internal Oracle
-    Samples database and to be exported in a number of formats including RDF, according to the 'IGSN Ontology' and an
-    expression of the Dublin Core ontology, HTML, XML in the form given by the GA Oracle DB's API and also XML according
-    to CSIRO's IGSN schema (v2).
-    """
+                This class represents a Sample and methods in this class allow a sample to be loaded from GA's internal Oracle
+                Samples database and to be exported in a number of formats including RDF, according to the 'IGSN Ontology' and an
+                expression of the Dublin Core ontology, HTML, XML in the form given by the GA Oracle DB's API and also XML according
+                to CSIRO's IGSN schema (v2).
+                """
 
     """
     Associates terms in the database with terms in the IGSN codelist vocabulary:
@@ -42,8 +42,85 @@ class Sample:
     URI_MISSSING = 'http://www.opengis.net/def/nil/OGC/0/missing'
     URI_GA = 'http://pid.geoscience.gov.au/org/ga/geoscienceaustralia'
 
-    def __init__(self, igsn, xml=None):
-        self.igsn = igsn
+    def __init__(self, request, xml=None):
+        views = {
+            'csirov3': View(
+                'CSIRO IGSN View',
+                'An XML-only metadata schema for descriptive elements of IGSNs',
+                ['text/xml'],
+                'text/xml',
+                namespace='https://confluence.csiro.au/display/AusIGSN/CSIRO+IGSN+IMPLEMENTATION'
+            ),
+
+            'dct': View(
+                'DC Terms View',
+                'Dublin Core Terms from the Dublin Core Metadata Initiative',
+                [
+                    "text/html",
+                    "text/turtle",
+                    "application/rdf+xml",
+                    "application/rdf+json",
+                    "application/xml",
+                    "text/xml"
+                ],
+                'text/turtle',
+                namespace='http://purl.org/dc/terms/'
+            ),
+
+            'igsn': View(
+                'IGSN View',
+                'The official IGSN XML schema',
+                ['text/xml'],
+                'text/xml',
+                namespace='http://schema.igsn.org/description/'
+            ),
+
+            'igsn-r1': View(
+                'IGSN v1. View',
+                'Version 1 of the official IGSN XML schema',
+                ['text/xml'],
+                'text/xml',
+                namespace='http://schema.igsn.org/description/1.0'
+            ),
+
+            'igsn-o': View(
+                'IGSN Ontology View',
+                "An OWL ontology of Samples based on CSIRO's XML-based IGSN schema",
+                ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+                'text/html',
+                namespace='http://pid.geoscience.gov.au/def/ont/ga/igsn'
+            ),
+
+            'prov': View(
+                'PROV View',
+                "The W3C's provenance data model, PROV",
+                ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+                "text/turtle",
+                namespace="http://www.w3.org/ns/prov/"
+            ),
+
+            'sosa': View(
+                'SOSA View',
+                "The W3C's Sensor, Observation, Sample, and Actuator ontology within the Semantic Sensor Networks ontology",
+                ["text/turtle", "application/rdf+xml", "application/rdf+json"],
+                "text/turtle",
+                namespace="http://www.w3.org/ns/sosa/"
+            ),
+        }
+
+        # this class only handles 2 cases of references to Samples:
+        #
+        #   1. PID URI, e.g. http://pid.geoscience.gov.au/sample/AU239
+        #       - or Local URI, e.g. http://localhost:5000/sample/AU239
+        #   2. OAI-PMH URL, e.g. http://pid.geoscience.gov.au/oai?verb=GetRecord&identifier=AU239&metadataPrefix=dc
+        #       - or local URL, e.g. http://localhost:5000/oai?verb=GetRecord&identifier=AU239&metadataPrefix=dc
+        if request.base_url.endswith('oai'):
+            self.igsn = request.values['identifier']
+        else:
+            self.igsn = request.base_url.split('/')[-1]
+
+        super(SampleRenderer, self).__init__(request, config.URI_SAMPLE_INSTANCE_BASE + self.igsn, views, 'igsn-o')
+
         self.sample_id = None
         self.access_rights = None
         self.sample_type = None
@@ -81,59 +158,23 @@ class Sample:
         self.custodian_uri = self.URI_GA  # default
         self.custodian_label = 'Geoscience Australia'  # default
         self.collector = None
+        self.not_found = False
 
         if xml is not None:  # even if there are values for Oracle API URI and IGSN, load from XML file if present
             self._populate_from_xml_file(xml)
         else:
             self._populate_from_oracle_api()
 
-    def render(self, view, mimetype):
-        # if self.sample_no is None:
-        #     return Response('Sample with IGSN {} not found.'.format(self.igsn), status=404, mimetype='text/plain')
-
-        if view == 'igsn-o':
-            if mimetype == 'text/html':
-                return self.export_html(model_view=view)
-            else:
-                return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
-        elif view == 'dct':
-            if mimetype == 'text/html':
-                return self.export_html(model_view=view)
-            elif mimetype == 'text/xml':
-                return Response(self.export_dct_xml(), mimetype=mimetype)
-            else:
-                return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
-        elif view == 'igsn':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_xml(),
-                mimetype='text/xml'
-            )
-        elif view == 'igsn-r1':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_r1_xml(),
-                mimetype='text/xml'
-            )
-        elif view == 'csirov3':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_csirov3_xml(),
-                mimetype='text/xml'
-            )
-        elif view == 'prov':
-            if mimetype == 'text/html':
-                return self.export_html(model_view=view)
-            else:
-                return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
-        elif view == 'sosa':  # RDF only for this view
-            return Response(self.export_rdf(view, mimetype), mimetype=mimetype)
-
     def validate_xml(self, xml):
         parser = etree.XMLParser(dtd_validation=False)
 
         try:
             etree.fromstring(xml, parser)
+            print(xml)
             return True
         except Exception:
             print('not valid xml')
+            print(xml)
             return False
 
     def _populate_from_oracle_api(self):
@@ -147,9 +188,9 @@ class Sample:
         # internal URI
         # os.environ['NO_PROXY'] = 'ga.gov.au'
         # call API
-        r = requests.get(conf.XML_API_URL_SAMPLE.format(self.igsn))
+        r = requests.get(config.XML_API_URL_SAMPLE.format(self.igsn))
         if "No data" in r.content.decode('utf-8'):
-            raise ParameterError('No Data')
+            self.not_found = True
 
         if self.validate_xml(r.content):
             self._populate_from_xml_file(r.content)
@@ -171,7 +212,8 @@ class Sample:
             if hasattr(root.ROW, 'SAMPLEID'):
                 self.sample_id = root.ROW.SAMPLEID
             self.sample_no = root.ROW.SAMPLENO if hasattr(root.ROW, 'SAMPLENO') else None
-            self.access_rights = self._make_vocab_uri('public', 'access_rights')  # statically 'public' for all samples
+            self.access_rights = self._make_vocab_uri('public',
+                                                      'access_rights')  # statically 'public' for all samples
             if hasattr(root.ROW, 'REMARK'):
                 self.remark = str(root.ROW.REMARK).strip() if len(str(root.ROW.REMARK)) > 5 else None
             if hasattr(root.ROW, 'SAMPLE_TYPE_NEW'):
@@ -203,8 +245,8 @@ class Sample:
                 if hasattr(root.ROW.GEOM, 'SDO_ORDINATES'):
                     self.ordinates = root.ROW.GEOM.SDO_ORDINATES.getchildren()
                     # calculate centroid values to centre a map
-                    self.centroid_lat = round(sum(self.ordinates[1:-2:2])/len(self.ordinates[:-2:2]), 2)
-                    self.centroid_lon = round(sum(self.ordinates[:-2:2])/len(self.ordinates[1:-2:2]), 2)
+                    self.centroid_lat = round(sum(self.ordinates[1:-2:2]) / len(self.ordinates[:-2:2]), 2)
+                    self.centroid_lon = round(sum(self.ordinates[:-2:2]) / len(self.ordinates[1:-2:2]), 2)
                     # self.ordinates = zip(*[iter(raw_ordinates)]*2)
             if hasattr(root.ROW, 'STATEID'):
                 self.state = root.ROW.STATEID  # self._make_vocab_uri(root.ROW.STATEID, 'state')
@@ -232,10 +274,12 @@ class Sample:
                 self.entity_type = self._make_vocab_uri(root.ROW.ENTITY_TYPE, 'entity_type')
             if hasattr(root.ROW, 'HOLE_MIN_LONGITUDE'):
                 self.hole_long_min = root.ROW.HOLE_MIN_LONGITUDE
+                self.x = root.ROW.HOLE_MIN_LONGITUDE
             if hasattr(root.ROW, 'HOLE_MAX_LONGITUDE'):
                 self.hole_long_max = root.ROW.HOLE_MAX_LONGITUDE
             if hasattr(root.ROW, 'HOLE_MIN_LATITUDE'):
                 self.hole_lat_min = root.ROW.HOLE_MIN_LATITUDE
+                self.y = root.ROW.HOLE_MIN_LATITUDE
             if hasattr(root.ROW, 'HOLE_MAX_LATITUDE'):
                 self.hole_lat_max = root.ROW.HOLE_MAX_LATITUDE
             if hasattr(root.ROW, 'ORIGINATOR'):
@@ -267,6 +311,60 @@ class Sample:
             else:
                 return '<a href="{}">{}</a>'.format(vocab_uri, vocab_uri.split('/')[-1])
 
+    def render(self):
+        if self.not_found:
+            return Response('Sample with IGSN {} not found.'.format(self.igsn), status=404, mimetype='text/plain')
+
+        if self.view == 'alternates':
+            return self._render_alternates_view()
+        elif self.view == 'igsn-o':
+            if self.format == 'text/html':
+                return self.export_html(model_view=self.view)
+            else:
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+        elif self.view == 'dct':
+            if self.format == 'text/html':
+                return self.export_html(model_view=self.view)
+            elif self.format == 'text/xml':
+                return Response(self.export_dct_xml(), mimetype=self.format)
+            else:
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+        elif self.view == 'igsn':  # only XML for this view
+            return Response(
+                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_xml(),
+                mimetype='text/xml'
+            )
+        elif self.view == 'igsn-r1':  # only XML for this view
+            return Response(
+                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_r1_xml(),
+                mimetype='text/xml'
+            )
+        elif self.view == 'csirov3':  # only XML for this view
+            return Response(
+                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_csirov3_xml(),
+                mimetype='text/xml'
+            )
+        elif self.view == 'prov':
+            if self.format == 'text/html':
+                return self.export_html(model_view=self.view)
+            else:
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+        elif self.view == 'sosa':  # RDF only for this view
+            return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+
+    def _render_alternates_view_html(self):
+        return Response(
+            render_template(
+                self.alternates_template or 'alternates.html',
+                register_name='Sample Register',
+                class_uri=self.uri,
+                instance_uri=config.URI_SAMPLE_INSTANCE_BASE + self.igsn,
+                default_view_token=self.default_view_token,
+                views=self.views
+            ),
+            headers=self.headers
+        )
+
     def _generate_sample_wkt(self):
         if self.z is not None:
             return '<http://www.opengis.net/def/crs/EPSG/0/4283> POINTZ({} {} {})'.format(self.x, self.y, self.z)
@@ -283,7 +381,7 @@ class Sample:
             return ''
 
     def _generate_sample_gmap_bbox(self):
-        if self.ordinates is not None:
+        if self.ordinates is not None and len(self.ordinates) != 0:
             s = []
             for x, y in zip(*[iter(self.ordinates)] * 2):
                 s.append('{lat: ' + str(y) + ', lng: ' + str(x) + '}')
@@ -321,7 +419,8 @@ class Sample:
                 'long_min': self.hole_long_min,
                 'lat_min': self.hole_lat_min
             }
-            wkt = '<http://www.opengis.net/def/crs/EPSG/0/4283> POINT({long_min} {lat_min})'.format(**coordinates)
+            wkt = '<http://www.opengis.net/def/crs/EPSG/0/4283> POINT({long_min} {lat_min})'.format(
+                **coordinates)
         else:
             wkt = ''
 
@@ -336,12 +435,12 @@ class Sample:
                 'lat_min': self.hole_lat_min,
                 'lat_max': self.hole_lat_max
             }
-            gml = '<ogc:BBOX>'\
-                  '<ogc:PropertyName>ows:BoundingBox</ogc:PropertyName>'\
+            gml = '<ogc:BBOX>' \
+                  '<ogc:PropertyName>ows:BoundingBox</ogc:PropertyName>' \
                   '<gml:Envelope srsName="https://epsg.io/{srid}">' \
                   '<gml:upperCorner>{long_min} {lat_max}</gml:upperCorner>' \
-                  '<gml:lowerCorner>{long_max} {lat_min}</gml:lowerCorner>'\
-                  '</gml:Envelope>'\
+                  '<gml:lowerCorner>{long_max} {lat_min}</gml:lowerCorner>' \
+                  '</gml:Envelope>' \
                   '</ogc:BBOX>'.format(**coordinates)
         elif self.hole_long_min is not None:
             coordinates = {
@@ -478,16 +577,17 @@ class Sample:
 
     def _make_citation(self):
         return '{} {}"Sample {}". A digital catalogue record of ' \
-               'a physical sample managed by {}. Accessed {}. <a href="{}">igsn:{}</a>'\
+               'a physical sample managed by {}. Accessed {}. <a href="{}">igsn:{}</a>' \
             .format(
-                self.collector if self.collector is not None else self.custodian_label,
-                '({}) '.format(datetime.datetime.strftime(self.date_acquired, '%Y')) if self.date_acquired is not None else '',
-                self.igsn,
-                self.custodian_label,
-                datetime.datetime.now().strftime('%d %B %Y'),
-                conf.URI_SAMPLE_INSTANCE_BASE + self.igsn,
-                self.igsn
-            )
+            self.collector if self.collector is not None else self.custodian_label,
+            '({}) '.format(
+                datetime.datetime.strftime(self.date_acquired, '%Y')) if self.date_acquired is not None else '',
+            self.igsn,
+            self.custodian_label,
+            datetime.datetime.now().strftime('%d %B %Y'),
+            config.URI_SAMPLE_INSTANCE_BASE + self.igsn,
+            self.igsn
+        )
 
     def _make_vsjs(self, g):
         g = self.__graph_preconstruct(g)
@@ -534,16 +634,16 @@ class Sample:
         g = Graph()
 
         # URI for this sample
-        this_sample = URIRef(conf.REGISTER_BASE_URI + self.igsn)
+        this_sample = URIRef(config.URI_SAMPLE_INSTANCE_BASE + self.igsn)
         g.add((this_sample, RDFS.label, Literal('Sample igsn:' + self.igsn, datatype=XSD.string)))
 
         # define GA
-        ga = URIRef(Sample.URI_GA)
+        ga = URIRef(self.URI_GA)
 
         # pingback endpoint
         PROV = Namespace('http://www.w3.org/ns/prov#')
         g.bind('prov', PROV)
-        g.add((this_sample, PROV.pingback, URIRef(conf.REGISTER_BASE_URI + self.igsn + '/pingback')))
+        g.add((this_sample, PROV.pingback, URIRef(config.URI_SAMPLE_INSTANCE_BASE + self.igsn + '/pingback')))
         SKOS = Namespace('http://www.w3.org/2004/02/skos/core#')
         g.bind('skos', SKOS)
         ADMS = Namespace('http://www.w3.org/ns/adms#')
@@ -609,7 +709,8 @@ class Sample:
             if self.method_type != 'http://www.opengis.net/def/nil/OGC/0/missing':
                 g.add((this_sample, SAMFL.samplingMethod, URIRef(self.method_type)))
             if self.date_acquired is not None:
-                g.add((this_sample, SAMFL.samplingTime, Literal(self.date_acquired.isoformat(), datatype=XSD.datetime)))
+                g.add((this_sample, SAMFL.samplingTime,
+                       Literal(self.date_acquired.isoformat(), datatype=XSD.datetime)))
 
             g.add((this_sample, DCT.accessRights, URIRef(TERM_LOOKUP['access_rights']['public'])))
             # TODO: make a register of Entities
@@ -631,8 +732,10 @@ class Sample:
                 site_geometry = BNode()
                 g.add((site, GEOSP.hasGeometry, site_geometry))
                 g.add((site_geometry, RDF.type, SAMFL.Point))  # TODO: extend this for other geometry types
-                g.add((site_geometry, GEOSP.asWKT, Literal(self._generate_parent_wkt(), datatype=GEOSP.wktLiteral)))
-                g.add((site_geometry, GEOSP.asGML, Literal(self._generate_parent_gml(), datatype=GEOSP.wktLiteral)))
+                g.add((site_geometry, GEOSP.asWKT,
+                       Literal(self._generate_parent_wkt(), datatype=GEOSP.wktLiteral)))
+                g.add((site_geometry, GEOSP.asGML,
+                       Literal(self._generate_parent_gml(), datatype=GEOSP.wktLiteral)))
 
                 site_elevation = BNode()
                 g.add((site, SAMFL.samplingElevation, site_elevation))
@@ -642,7 +745,8 @@ class Sample:
                 else:
                     z = self.z
                 g.add((site_elevation, SAMFL.elevation, Literal(z, datatype=XSD.float)))
-                g.add((site_elevation, SAMFL.verticalDatum, URIRef('http://spatialreference.org/ref/epsg/4283/')))
+                g.add(
+                    (site_elevation, SAMFL.verticalDatum, URIRef('http://spatialreference.org/ref/epsg/4283/')))
                 g.add((site, SAMFL.sampledFeature, this_sample))
 
             # Agents
@@ -755,7 +859,8 @@ class Sample:
                 g.add((sr, RDF.type, SAMP.SampleRelationship))
                 g.add((sr, SAMP.relatedSample, site))
                 # TODO: replace with a real Concept URI
-                g.add((sr, SAMP.natureOfRelationship, URIRef('http://example.org/sampling/relationship/subsample')))
+                g.add((sr, SAMP.natureOfRelationship,
+                       URIRef('http://example.org/sampling/relationship/subsample')))
                 g.add((this_sample, SAMP.hasSampleRelationship, sr))  # associate
 
                 # Site details
@@ -772,7 +877,8 @@ class Sample:
                 site_geometry = BNode()
                 g.add((site, GEOSP.hasGeometry, site_geometry))
                 g.add((site_geometry, RDF.type, GEOSP.Geometry))
-                g.add((site_geometry, GEOSP.asWKT, Literal(self._generate_parent_wkt(), datatype=GEOSP.wktLiteral)))
+                g.add((site_geometry, GEOSP.asWKT,
+                       Literal(self._generate_parent_wkt(), datatype=GEOSP.wktLiteral)))
                 # g.add((site_geometry, GEOSP.asGML, Literal(self._generate_parent_gml(), datatype=GEOSP.wktLiteral)))
                 # FOI elevation
                 site_elevation = BNode()
@@ -790,9 +896,11 @@ class Sample:
             #   Feature of Interest
             #
             # domain feature, same for all Samples
-            domain_feature = URIRef('http://registry.it.csiro.au/sandbox/csiro/oznome/feature/earth-realm/lithosphere')
+            domain_feature = URIRef(
+                'http://registry.it.csiro.au/sandbox/csiro/oznome/feature/earth-realm/lithosphere')
             g.add((domain_feature, RDF.type, SOSA.FeatureOfInterest))
-            g.add((domain_feature, SKOS.exactMatch, URIRef('http://sweet.jpl.nasa.gov/2.3/realmGeol.owl#Lithosphere')))
+            g.add((domain_feature, SKOS.exactMatch,
+                   URIRef('http://sweet.jpl.nasa.gov/2.3/realmGeol.owl#Lithosphere')))
             g.add((this_sample, SOSA.isSampleOf, domain_feature))  # associate
 
             g.add((this_sample, RDF.type, PROV.Entity))
@@ -819,7 +927,10 @@ class Sample:
                 g.add((qualified_attribution2, PROV.hadRole, AUROLE.principalInvestigator))
                 g.add((this_sample, PROV.qualifiedAttribution, qualified_attribution2))
 
-        return g.serialize(format=LDAPI.get_rdf_parser_for_mimetype(rdf_mime))
+        return g.serialize(format=self._get_rdf_mimetype(rdf_mime))
+
+    def _get_rdf_mimetype(self, rdf_mime):
+        return self.RDF_SERIALIZER_MAP[rdf_mime]
 
     def _is_xml_export_valid(self, xml_string):
         """
@@ -958,12 +1069,13 @@ class Sample:
                 sample_id=self.sample_id,
                 description=self.remark,
                 access_rights_alink=self._make_vocab_alink(self.access_rights),
-                date_acquired=self.date_acquired if self.date_acquired is not None else '<a href="{}">{}</a>'.format(Sample.URI_MISSSING, Sample.URI_MISSSING.split('/')[-1]),
+                date_acquired=self.date_acquired if self.date_acquired is not None else '<a href="{}">{}</a>'.format(
+                    self.URI_MISSSING, self.URI_MISSSING.split('/')[-1]),
                 wkt=self._generate_sample_wkt(),
                 state=self.state,
                 sample_type_alink=self._make_vocab_alink(self.sample_type),
                 method_type_alink=self.method_type,
-                method_type_text=self.method_type_non_uri,
+                method_type_text=self.method_type_non_uri if hasattr(self, 'method_type_non_uri') else '',
                 material_type_alink=self._make_vocab_alink(self.material_type),
                 lithology_alink=self._make_vocab_alink(self.lith),
                 entity_type_alink=self._make_vocab_alink(self.entity_type),
@@ -989,7 +1101,7 @@ class Sample:
                 identifier=self.igsn,
                 description=self.remark if self.remark != '' else '-',
                 date=self.date_acquired if self.date_acquired is not None else '<a href="{}">{}</a>'.format(
-                    Sample.URI_MISSSING, Sample.URI_MISSSING.split('/')[-1]),
+                    self.URI_MISSSING, self.URI_MISSSING.split('/')[-1]),
                 type=self.sample_type,
                 format=self.material_type,
                 wkt=self._generate_sample_wkt(),
@@ -1004,7 +1116,7 @@ class Sample:
             year_acquired = ''
 
         # add in the Pingback header links as they are valid for all HTML views
-        pingback_uri = conf.URI_SAMPLE_INSTANCE_BASE + self.igsn + "/pingback"
+        pingback_uri = config.URI_SAMPLE_INSTANCE_BASE + self.igsn + "/pingback"
         headers = {
             'Link': '<{}>;rel = "http://www.w3.org/ns/prov#pingback"'.format(pingback_uri)
         }
@@ -1012,15 +1124,17 @@ class Sample:
         return Response(
             render_template(
                 'page_sample.html',
-                organisation_branding=TERM_LOOKUP['custodian'].get(self.custodian_uri) if TERM_LOOKUP['custodian'].get(self.custodian_uri) is not None else 'ga',
+                organisation_branding=TERM_LOOKUP['custodian'].get(self.custodian_uri) if TERM_LOOKUP['custodian']
+                                                                                              .get(self.custodian_uri)
+                                                                                          is not None else 'ga',
                 view=model_view,
                 igsn=self.igsn,
                 year_acquired=year_acquired,
                 view_title=view_title,
                 sample_table_html=sample_table_html,
-                gm_key=conf.GOOGLE_MAPS_API_KEY,
-                lat=self.y if self.y is not None else self.centroid_lat,
-                lon=self.x if self.x is not None else self.centroid_lon,
+                gm_key=config.GOOGLE_MAPS_API_KEY,
+                lat=self.y if self.y is not None else self.centroid_lat if hasattr(self, 'centroid_lat') else None,
+                lon=self.x if self.x is not None else self.centroid_lon if hasattr(self, 'centroid_lon') else None,
                 gmap_bbox=self._generate_sample_gmap_bbox(),
                 citation=self._make_citation()
             ),

@@ -1,8 +1,9 @@
+<header>
 <div id="header">
   <table>
     <tr>
       <td>
-        <img id="ga-logo" src="{{ url_for('static', filename = 'img/ga-logo.jpg') }}" />
+        <a href="www.ga.gov.au"><img id="ga-logo" src="{{ url_for('static', filename = 'img/ga/ga-logo.jpg') }}"/></a>
       </td>
       <td>
         <table>
@@ -11,12 +12,7 @@
               <span id="quote">Applying geoscience to Australia's most important challenges</span>
             </td>
           </tr>
-          <tr>
-            <td>
-              {% set nav = 'ga/nav.html' %}
-              {% include nav %}
-            </td>
-          </tr>
+
         </table>
       </td>
     </tr>
@@ -24,4 +20,14 @@
   <div id="ga-colour-strip-container">
     <img id="ga-colour-strip" src="{{ url_for('static', filename = 'img/ga/lo.jpg') }}" />
   </div>
+          <table>
+            <tr>
+              <td>
+
+               {% set nav = 'ga/nav.html' %}
+              {% include nav %}
+              </td>
+                 </tr>
+                    </table>
 </div>
+  </header>

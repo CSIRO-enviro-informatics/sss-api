@@ -4,8 +4,11 @@
  -->
 {% if igsn is not defined %}
     {% set organisation_branding = 'ga' %}
+
 {% elif "QL" in igsn %}
     {% set organisation_branding = 'gsq' %}
+{% elif "AU" in igsn %}
+    {% set organisation_branding = 'ga' %}
 {% endif %}
 <!DOCTYPE html>
 <html>

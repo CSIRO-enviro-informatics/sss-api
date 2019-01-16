@@ -1,6 +1,9 @@
-<div id="ga-nav">
+<div id="nav">
 	<a href="https://www.business.qld.gov.au/industries/mining-energy-water/resources/geoscience-information/gsq">GSQ</a>
 	<a href="{{ url_for('controller.index') }}">API Home</a>
-	<a href="{{ base_uri }}">Sample Register</a>
-	<a href="{{ url_for('oai.oai') }}">OAI-PMH Endpoint</a>
+	<a href="{{ url_for('classes.samples') }}">Samples</a>
+	<a href="{{ url_for('classes.sites') }}">Sites</a>
+    <a href="{{ url_for('classes.surveys') }}">Surveys</a>
+	<a href="{{ url_for('oai.oai') }}">Sample OAI-PMH</a>
+    <a href="{{ url_for('controller.about') }}">About</a>
 </div>
