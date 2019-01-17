@@ -8,7 +8,7 @@
 {% elif "QL" in igsn %}
     {% set organisation_branding = 'gsq' %}
 {% elif "AU" in igsn %}
-    {% set organisation_branding = 'ga' %}
+    {% set organisation_branding = 'gsq' %}
 {% endif %}
 <!DOCTYPE html>
 <html>
@@ -24,10 +24,13 @@
 </head>
 <body>
     {% set header = organisation_branding + '/header.html' %}
+    {% set nav = '/nav.html' %}
     {% set footer = organisation_branding + '/footer.html' %}
-    {% set nav = organisation_branding + '/nav.html' %}
+
     {% include header %}
+
     <div id="container-content">
+            {% include nav %}
         {% block content %}{% endblock %}
     </div>
     {% include footer %}

@@ -142,20 +142,21 @@ td#quote {
 /*
 *	Nav
 */
-div#ga-nav {
+div#nav {
     text-align:left;
-	font-size: 1em;
+	font-size: 1.5em;
 	font-family:sans-serif;
-	margin:20px 0 0 0;
+	margin: 15px 0 25px 0;
+
 }
 
-div#ga-nav a {
+div#nav a {
 	margin: 0 10px 0 10px;
 	text-decoration:none;
 	color:#2f2f2f;
 }
 
-div#ga-nav a:hover {
+div#nav a:hover {
 	text-decoration:underline;
 }
 
