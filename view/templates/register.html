@@ -14,7 +14,13 @@
         <!--</ul>-->
         <table>
             <tr>
-                <td style="vertical-align:top; width:500px;">
+                <!--<td style="vertical-align:top; width:500px;">-->
+                <td id="reg_items">
+                    <style>
+                        #reg_items {    vertical-align:top;
+                                        width:500px;
+                                    }
+                    </style>
                     <h3>Items in this Register</h3>
                     <ul>
                     {%- for item in register_items -%}
