@@ -225,3 +225,9 @@ table.pretty th {
       vertical-align:top;
       width:500px;
 }
+
+#alternate_views  {
+    vertical-align:top;
+    table-layout:fixed;
+    width=500px;
+}
