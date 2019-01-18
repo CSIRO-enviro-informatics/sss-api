@@ -220,3 +220,8 @@ table.pretty th {
 .no-line-height {
     line-height: 0px;
 }
+
+#reg_items {
+      vertical-align:top;
+      width:500px;
+}
