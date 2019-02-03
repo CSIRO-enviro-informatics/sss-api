@@ -11,7 +11,7 @@ body {
 #container-content {
 	margin: 0 auto;
 	text-align:left;
-	width:1100px;
+	width:1200px;
 	background-color:white;
 	padding: 20px 0 20px 0;
 }
@@ -147,7 +147,6 @@ div#nav {
 	font-size: 1.5em;
 	font-family:sans-serif;
 	margin: 15px 0 25px 0;
-
 }
 
 div#nav a {
@@ -174,7 +173,7 @@ table.lined td {
 table.pretty {
     border-collapse: collapse;
     /*border: solid 2px black;*/
-	width: 568px;
+	width: 1200px;
     font-size: 0.8em;
 }
 
@@ -227,7 +226,8 @@ table.pretty th {
 }
 
 #alternate_views  {
-    vertical-align:top;
-    table-layout:fixed;
-    width=500px;
+}
+
+#map {
+width: 1200px;
 }
