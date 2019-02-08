@@ -51,7 +51,7 @@ def _get_items(page, per_page, elem_tag):
         print('not valid xml')
         return None
 
-@classes.route('/sss')
+@classes.route('/')
 def home():
 
  return render_template(
