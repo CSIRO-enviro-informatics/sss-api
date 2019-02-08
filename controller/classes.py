@@ -51,12 +51,12 @@ def _get_items(page, per_page, elem_tag):
         print('not valid xml')
         return None
 
-@classes.route('/')
-def home():
+@classes.route('/index')
+def index():
 
  return render_template(
         'index.html'
-       # api_endpoint=config.API_ENDPOINT
+       #api_endpoint=config.API_ENDPOINT
     )
 
 @classes.route('/sample/<string:igsn>')
