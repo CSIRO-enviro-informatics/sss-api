@@ -1,7 +1,7 @@
 """
 This file contains all the HTTP routes for classes from the IGSN model, such as Samples and the Sample Register
 """
-from flask import Blueprint, request, Response
+from flask import Blueprint, request, Response, render_template
 import _config as config
 import pyldapi
 import requests
@@ -51,6 +51,13 @@ def _get_items(page, per_page, elem_tag):
         print('not valid xml')
         return None
 
+@classes.route('/sss')
+def home():
+
+ return render_template(
+        'index.html'
+       # api_endpoint=config.API_ENDPOINT
+    )
 
 @classes.route('/sample/<string:igsn>')
 def sample(igsn):
