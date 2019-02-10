@@ -8,7 +8,7 @@ import _config as config
 pages = Blueprint('controller', __name__)
 
 
-@pages.route('/sss')
+@pages.route('/')
 def index():
     """
     A basic landing page for this web service
