@@ -54,8 +54,9 @@ def _get_items(page, per_page, elem_tag):
 @classes.route('/index')
 def index():
 
- return render_template(
-        'index.html'
+    return render_template(
+        'index.html',
+        rule
        #api_endpoint=config.API_ENDPOINT
     )
 
