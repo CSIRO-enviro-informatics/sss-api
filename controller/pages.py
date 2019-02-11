@@ -12,14 +12,13 @@ pages = Blueprint('controller', __name__)
 def index():
     """
     A basic landing page for this web service
-
     :return: HTTP Response (HTML page only)
     """
     rule = request.url_rule
     print(rule)
     return render_template(
         'page_index.html',
-        api_endpoint='http://localhost:5000/'
+        api_endpoint=config.BASE_URL
     )
 
 
