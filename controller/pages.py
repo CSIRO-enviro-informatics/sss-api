@@ -18,7 +18,7 @@ def index():
     print(rule)
     return render_template(
         'page_index.html',
-        api_endpoint=config.BASE_URL
+        api_endpoint=config.BASE_URL + '/sss'
     )
 
 
