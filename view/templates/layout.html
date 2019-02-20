@@ -17,7 +17,7 @@
     <title>SSS API </title>
     {% set css = organisation_branding + '_theme.css' %}
     <!--set the master css theme -->
-     <link rel="stylesheet" href="{{url_for('static', filename='css/master_theme.css')}}" />
+     <link rel="stylesheet" href="{{url_for('static', filename='css/master_theme.css', _external=True)}}" />
      <!--set the organisation specific css theme to overwrite the master theme where styles have been defined -->
     <link rel="stylesheet" href="{{url_for('static', filename='css/' + css)}}" />
     <link rel="icon" href="{{url_for('static', filename='img/ga/favicon.ico')}}">
