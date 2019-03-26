@@ -20,7 +20,7 @@ def render_error(response_date, request_uri, oai_code, message, http_status=400)
     )
 
 
-@oai_.route('/oai', methods=['GET', 'POST'])
+@oai_.route('/sample/oai', methods=['GET', 'POST'])
 def oai():
     # date in OAI format
     response_date = datetime_to_datestamp(datetime.datetime.now())
