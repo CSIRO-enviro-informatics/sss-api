@@ -17,7 +17,7 @@ def index():
     rule = request.url_rule
     print(rule)
     return render_template(
-        'new_home.html',
+        'new_home2.html',
         api_endpoint=config.BASE_URL
     )
 

@@ -2,10 +2,30 @@ body {
   margin: 40px;
 }
 
-.grid {
+.grida{
+  display: grid;
+  grid-template-columns: 292.5px 292.5px 292.5px 292.5px;;
+    grid-template-rows: 200px;
+  grid-gap: 10px;
+  background-color: #fff;
+  color: #444;
+   vertical-align: middle;
+   padding-bottom: 30px;
+}
+.gridb{
   display: grid;
   grid-template-columns: 292.5px 292.5px 292.5px 292.5px;
-    grid-template-rows: 200px 200px;
+    grid-template-rows: 200px;
+  grid-gap: 10px;
+  background-color: #fff;
+  color: #444;
+   vertical-align: middle;
+   padding-bottom: 30px;
+}
+.gridc{
+  display: grid;
+  grid-template-columns: 292.5px 292.5px 292.5px 292.5px;
+    grid-template-rows: 200px;
   grid-gap: 10px;
   background-color: #fff;
   color: #444;
