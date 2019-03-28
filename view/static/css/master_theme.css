@@ -238,7 +238,7 @@ width: 1200px;
 * Home page styling
 */
 
-.grid_a {
+.grid a {
     display: grid;
     grid-template-columns: 292.5px 292.5px 292.5px 292.5px;;
     grid-template-rows: 200px;
@@ -249,7 +249,7 @@ width: 1200px;
     padding-bottom: 30px;
 }
 
-.grid_b {
+.grid b {
     display: grid;
     grid-template-columns: 292.5px 292.5px 292.5px 292.5px;
     grid-template-rows: 200px;
@@ -260,7 +260,7 @@ width: 1200px;
     padding-bottom: 30px;
 }
 
-.grid_c{
+.grid c{
     display: grid;
     grid-template-columns: 292.5px 292.5px 292.5px 292.5px;
     grid-template-rows: 200px;
