@@ -21,6 +21,7 @@
      <!--set the organisation specific css theme to overwrite the master theme where styles have been defined -->
     <link rel="stylesheet" href="{{url_for('static', filename='css/' + css)}}" />
     <link rel="icon" href="{{url_for('static', filename='img/ga/favicon.ico')}}">
+    <p>{css}</p>>
 </head>
 <body>
     {% set header = organisation_branding + '/header.html' %}
