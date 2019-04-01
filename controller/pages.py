@@ -4,14 +4,16 @@ This file contains all the HTTP routes for basic pages (usually HTML)
 from flask import Blueprint, render_template, request
 import _config as config
 import yaml
-
+import os
 
 pages = Blueprint('controller', __name__)
 
-yaml_data = yaml.safe_load(open("_config/home_page_settings.yml"))
+d = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+path = "{}/_config/home_page_settings.yml".format(d)
+
+print(os.path.relpath(os.path.abspath(__file__)))
+yaml_data = yaml.safe_load(open(path))
 home_page_boxes_dict = yaml_data['home_page_boxes']
-
-
 
 @pages.route('/')
 def index():
