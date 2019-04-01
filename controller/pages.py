@@ -3,9 +3,14 @@ This file contains all the HTTP routes for basic pages (usually HTML)
 """
 from flask import Blueprint, render_template, request
 import _config as config
+import yaml
 
 
 pages = Blueprint('controller', __name__)
+
+yaml_data = yaml.safe_load(open("_config/home_page_settings.yml"))
+home_page_boxes_dict = yaml_data['home_page_boxes']
+
 
 
 @pages.route('/')
@@ -18,7 +23,8 @@ def index():
     print(rule)
     return render_template(
         'new_home2.html',
-        api_endpoint=config.BASE_URL
+        api_endpoint=config.BASE_URL,
+        home_page_settings=home_page_boxes_dict
     )
 
 
