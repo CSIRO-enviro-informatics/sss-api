@@ -12,23 +12,21 @@
 	<p>The following collections of PIDs are in use within pid.geoscience.gov.au:</p>
 
 <h2>Register of LD APIs</h2>
-	<div class="grida">
-		<a class="box a" href="/sample/">Samples</a>
-		<a class="box b" href="/site/ga">Sites</a>
-		<a class="box c" href="/survey/ga">Surveys</a>
-		<a class="box c" href="/survey/ga">Future other thing</a>
+    <div class="grida">
+     {% for grouping in home_page_settings['REGISTER_OF_LD_APIs'] %}
+		{% for key, value in grouping.items() %}
+			<a class="box" href={{value}}>{{key}}</a>
+	    {% endfor %}
+     {% endfor %}
 	</div>
-<h2>Vocabularies</h2>
+<h2>Definitional</h2>
 	<div class="gridb">
-		<a class="box d" href="/def/voc/ga/">Vocabularies</a>
-		<a class="box e" href="http://google.com">Ontology</a>
-		<a class="box f" href="http://google.com">Schema</a>
+     {% for grouping in home_page_settings['DEFINITIONAL'] %}
+		{% for key, value in grouping.items() %}
+			<a class="box" href={{value}}>{{key}}</a>
+		{% endfor %}
+     {% endfor %}
 	</div>
-<h2>Other</h2>
-	<div class="gridc">
-		<a class="box g" href="http://google.com">Organisation</a>
-	</div>
-
 
 <!--
 	<table>
