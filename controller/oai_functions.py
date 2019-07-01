@@ -92,7 +92,7 @@ def validate_oai_parameters(qsa_args):
 def list_records(metadataPrefix, resumptionToken=None, from_=None, until=None):
     # if we don't have a resumption token, start at the beginning
     if resumptionToken is None:
-        oracle_api_samples_url = conf.XML_API_URL_SAMPLESET.format(1, conf.OAI_BATCH_SIZE)
+        oracle_api_samples_url = (conf.XML_API_URL_SAMPLESET).format(1, conf.OAI_BATCH_SIZE)
     else:
         oracle_api_samples_url = create_url_query_token(resumptionToken)
         [from_, until, batch_num, metadataPrefix] = resumptionToken.split(',')
@@ -118,7 +118,7 @@ def list_records_xml(metadataPrefix, resumptionToken=None, from_=None, until=Non
     page_no = 1
 
     if resumptionToken is None:
-        oracle_api_samples_url = conf.XML_API_URL_SAMPLESET.format(page_no, no_per_page)
+        oracle_api_samples_url = (conf.XML_API_URL_SAMPLESET).format(page_no, no_per_page)
     else:
         oracle_api_samples_url = create_url_query_token(resumptionToken)
         [from_, until, batch_num, metadataPrefix] = resumptionToken.split(',')
@@ -135,9 +135,9 @@ def list_records_xml(metadataPrefix, resumptionToken=None, from_=None, until=Non
 
     for event, elem in etree.iterparse(BytesIO(r.content), tag='ROW'):
         # create a Sample for each XML ROW
-        sample = sample.SampleRenderer(None, '<root>{}</root>'.format(etree.tostring(elem)))
-        if sample.date_modified is not None:
-            datestamp = datetime_to_datestamp(sample.date_modified)
+        sample_renderer = sample.SampleRenderer(None, '<root>{}</root>'.format(etree.tostring(elem)))
+        if sample_renderer.date_modified is not None:
+            datestamp = datetime_to_datestamp(sample_renderer.date_modified)
         else:
             datestamp = '1900-01-01T00:00:00Z'
 
@@ -145,17 +145,17 @@ def list_records_xml(metadataPrefix, resumptionToken=None, from_=None, until=Non
         # for some reason, there's this odd whitespace character in the metadataPrefix
         metadataPrefix = metadataPrefix.replace(u'\u200b', '')
         if metadataPrefix == 'igsn':
-            record_xml = sample.export_igsn_xml()
+            record_xml = sample_renderer.export_igsn_xml()
         elif metadataPrefix == 'igsn-r1':
-            record_xml = sample.export_igsn_r1_xml()
+            record_xml = sample_renderer.export_igsn_r1_xml()
         elif metadataPrefix == 'csirov3':
-            record_xml = sample.export_csirov3_xml()
+            record_xml = sample_renderer.export_csirov3_xml()
         else:  # oai_dc
-            record_xml = sample.export_dct_xml()
+            record_xml = sample_renderer.export_dct_xml()
 
         # make the full OAI record
         oai_record_vars = {
-            'identifier': sample.igsn,
+            'identifier': sample_renderer.igsn,
             'datestamp': datestamp,
             'record_xml': record_xml
         }
@@ -278,7 +278,7 @@ def get_complete_list_size(str_from_date=None, str_until_date=None):
     else:
         str_until_date = convert_datestamp_to_oracle(str_until_date)
 
-    r = requests.get(conf.XML_API_URL_TOTAL_COUNT_DATE_RANGE.format(str_from_date, str_until_date))
+    r = requests.get((conf.XML_API_URL_TOTAL_COUNT_DATE_RANGE).format(str_from_date, str_until_date))
 
     if "No data" in r.content.decode('utf-8'):
         raise NoRecordsMatchError('No Data')
@@ -305,7 +305,7 @@ def create_url_query_token(token):
 
     page_no = str(math.floor(int(cursor) / int(no_per_page)))
 
-    oracle_api_samples_url = conf.XML_API_URL_SAMPLESET_DATE_RANGE.format(
+    oracle_api_samples_url = (conf.XML_API_URL_SAMPLESET_DATE_RANGE).format(
         page_no, no_per_page, from_date, until_date
     )
     return oracle_api_samples_url

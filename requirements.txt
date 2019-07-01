@@ -5,3 +5,6 @@ lxml
 rdflib
 pyldapi
 pytest
+isodate
+markdown
+SPARQLWrapper

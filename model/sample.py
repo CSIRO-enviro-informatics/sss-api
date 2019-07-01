@@ -114,12 +114,6 @@ class SampleRenderer(Renderer):
         #       - or Local URI, e.g. http://localhost:5000/sample/AU239
         #   2. OAI-PMH URL, e.g. http://pid.geoscience.gov.au/oai?verb=GetRecord&identifier=AU239&metadataPrefix=dc
         #       - or local URL, e.g. http://localhost:5000/oai?verb=GetRecord&identifier=AU239&metadataPrefix=dc
-        if request.base_url.endswith('oai'):
-            self.igsn = request.values['identifier']
-        else:
-            self.igsn = request.base_url.split('/')[-1]
-
-        super(SampleRenderer, self).__init__(request, config.URI_SAMPLE_INSTANCE_BASE + self.igsn, views, 'igsn-o')
 
         self.sample_id = None
         self.access_rights = None
@@ -163,6 +157,13 @@ class SampleRenderer(Renderer):
         if xml is not None:  # even if there are values for Oracle API URI and IGSN, load from XML file if present
             self._populate_from_xml_file(xml)
         else:
+            assert request is not None, 'Must supply either request or xml to render sample'
+            if request.base_url.endswith('oai'):
+                self.igsn = request.values['identifier']
+            else:
+                self.igsn = request.base_url.split('/')[-1]
+
+            super(SampleRenderer, self).__init__(request, config.URI_SAMPLE_INSTANCE_BASE + self.igsn, views, 'igsn-o')
             self._populate_from_oracle_api()
 
     def validate_xml(self, xml):
@@ -240,7 +241,7 @@ class SampleRenderer(Renderer):
                         self.z = root.ROW.GEOM.SDO_POINT.Z
                 if hasattr(root.ROW.GEOM, 'SDO_ELEM_INFO'):
                     self.elem_info = root.ROW.GEOM.SDO_ELEM_INFO
-                if hasattr(root.ROW.GEOM, 'SDO_ORDINATES'):
+                if hasattr(root.ROW.GEOM, 'SDO_ORDINATES') and root.ROW.GEOM.SDO_ORDINATES:
                     self.ordinates = root.ROW.GEOM.SDO_ORDINATES.getchildren()
                     # calculate centroid values to centre a map
                     self.centroid_lat = round(sum(self.ordinates[1:-2:2]) / len(self.ordinates[:-2:2]), 2)
@@ -260,7 +261,7 @@ class SampleRenderer(Renderer):
                 self.age = root.ROW.AGE
             if hasattr(root.ROW, 'LITHNAME'):
                 self.lith = self._make_vocab_uri(root.ROW.LITHNAME, 'lithology')
-            if hasattr(root.ROW, 'ACQUIREDATE'):
+            if hasattr(root.ROW, 'ACQUIREDATE') and root.ROW.ACQUIREDATE:
                 self.date_acquired = str2datetime(root.ROW.ACQUIREDATE).date()
             if hasattr(root.ROW, 'MODIFIED_DATE'):
                 self.date_modified = str2datetime(root.ROW.MODIFIED_DATE)
@@ -290,7 +291,7 @@ class SampleRenderer(Renderer):
                     # custodian_uri & custodian_label set to GA by default
                     self.collector = str(root.ROW.ORIGINATOR)
         except Exception as e:
-            print(e)
+            print('Error in _populate_from_xml_file function: {}'.format(e))
 
         return True
 
