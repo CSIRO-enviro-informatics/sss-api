@@ -123,7 +123,6 @@ def list_records_xml(metadataPrefix, resumptionToken=None, from_=None, until=Non
         oracle_api_samples_url = create_url_query_token(resumptionToken)
         [from_, until, batch_num, metadataPrefix] = resumptionToken.split(',')
 
-    print(oracle_api_samples_url)
     r = requests.get(oracle_api_samples_url)
 
     if "No data" in r.content.decode('utf-8'):
