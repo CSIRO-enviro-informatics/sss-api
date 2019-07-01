@@ -11,7 +11,7 @@ pages = Blueprint('controller', __name__)
 d = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 path = "{}/_config/home_page_settings.yml".format(d)
 
-print(os.path.relpath(os.path.abspath(__file__)))
+#print(os.path.relpath(os.path.abspath(__file__)))
 yaml_data = yaml.safe_load(open(path))
 home_page_boxes_dict = yaml_data['home_page_boxes']
 
@@ -22,7 +22,6 @@ def index():
     :return: HTTP Response (HTML page only)
     """
     rule = request.url_rule
-    print(rule)
     return render_template(
         'new_home2.html',
         api_endpoint=config.BASE_URL,

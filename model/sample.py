@@ -171,7 +171,7 @@ class SampleRenderer(Renderer):
 
         try:
             etree.fromstring(xml, parser)
-            print(xml)
+            #print(xml)
             return True
         except Exception:
             print('not valid xml')
