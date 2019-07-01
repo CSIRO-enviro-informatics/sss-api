@@ -19,18 +19,17 @@
     <!--set the master css theme -->
      <link rel="stylesheet" href="{{url_for('static', filename='css/master_theme.css', _external=True)}}" />
      <!--set the organisation specific css theme to overwrite the master theme where styles have been defined -->
-    <link rel="stylesheet" href="{{url_for('static', filename='css/' + css, _external=True)}}" />
+    <link rel="stylesheet" href="{{url_for('static', filename='css/' + css)}}" />
     <link rel="icon" href="{{url_for('static', filename='img/ga/favicon.ico')}}">
 </head>
 <body>
     {% set header = organisation_branding + '/header.html' %}
-    {% set nav = '/nav.html' %}
     {% set footer = organisation_branding + '/footer.html' %}
 
     {% include header %}
 
     <div id="container-content">
-            {% include nav %}
+
         {% block content %}{% endblock %}
     </div>
     {% include footer %}

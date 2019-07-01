@@ -171,9 +171,11 @@ class SampleRenderer(Renderer):
 
         try:
             etree.fromstring(xml, parser)
+            print(xml)
             return True
         except Exception:
             print('not valid xml')
+            print(xml)
             return False
 
     def _populate_from_oracle_api(self):
@@ -273,10 +275,12 @@ class SampleRenderer(Renderer):
                 self.entity_type = self._make_vocab_uri(root.ROW.ENTITY_TYPE, 'entity_type')
             if hasattr(root.ROW, 'HOLE_MIN_LONGITUDE'):
                 self.hole_long_min = root.ROW.HOLE_MIN_LONGITUDE
+                self.x = root.ROW.HOLE_MIN_LONGITUDE
             if hasattr(root.ROW, 'HOLE_MAX_LONGITUDE'):
                 self.hole_long_max = root.ROW.HOLE_MAX_LONGITUDE
             if hasattr(root.ROW, 'HOLE_MIN_LATITUDE'):
                 self.hole_lat_min = root.ROW.HOLE_MIN_LATITUDE
+                self.y = root.ROW.HOLE_MIN_LATITUDE
             if hasattr(root.ROW, 'HOLE_MAX_LATITUDE'):
                 self.hole_lat_max = root.ROW.HOLE_MAX_LATITUDE
             if hasattr(root.ROW, 'ORIGINATOR'):

@@ -1,0 +1,12 @@
+home_page_boxes:
+  REGISTER_OF_LD_APIs:
+  - {Samples: "/sample/"}
+  - {Sites: "/site/ga/"}
+  - {Surveys: "/survey/ga/"}
+  DEFINITIONAL:
+  - {Vocabularies: "http://ldweb.ga.gov.au/def/voc/ga/"}
+  - {Ontologies: "http://pid.geoscience.gov.au/def/ont/ga/"}
+  - {Schemas: "http://pid.geoscience.gov.au/def/schema/ga/"}
+  OTHER:
+  - {Organisation: "/survey/ga/"}
+  - {Organisation3: "/survey/ga/"}

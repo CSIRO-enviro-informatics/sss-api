@@ -1,7 +1,7 @@
 """
 This file contains all the HTTP routes for classes from the IGSN model, such as Samples and the Sample Register
 """
-from flask import Blueprint, request, Response
+from flask import Blueprint, request, Response, render_template
 import _config as config
 import pyldapi
 import requests

@@ -444,7 +444,8 @@ class SiteRenderer(Renderer):
                 lat=self.centroid_y,
                 lon=self.centroid_x,
                 geometry_type=self.geometry_type,
-                coords=self.coords
+                coords=self.coords,
+                base_url=config.BASE_URL
             ),
             headers=headers
         )

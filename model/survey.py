@@ -715,7 +715,8 @@ class SurveyRenderer(Renderer):
             s_lat=self.s_lat,
             w_long=self.w_long,
             e_long=self.e_long,
-            gm_key=config.GOOGLE_MAPS_API_KEY
+            gm_key=config.GOOGLE_MAPS_API_KEY,
+            base_url=config.BASE_URL
         )
 
 
