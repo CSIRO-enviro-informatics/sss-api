@@ -243,7 +243,7 @@ class SampleRenderer(Renderer):
                         self.z = root.ROW.GEOM.SDO_POINT.Z
                 if hasattr(root.ROW.GEOM, 'SDO_ELEM_INFO'):
                     self.elem_info = root.ROW.GEOM.SDO_ELEM_INFO
-                if hasattr(root.ROW.GEOM, 'SDO_ORDINATES') and root.ROW.GEOM.SDO_ORDINATES:
+                if hasattr(root.ROW.GEOM, 'SDO_ORDINATES') and len(str(root.ROW.GEOM.SDO_ORDINATES)):
                     self.ordinates = root.ROW.GEOM.SDO_ORDINATES.getchildren()
                     # calculate centroid values to centre a map
                     self.centroid_lat = round(sum(self.ordinates[1:-2:2]) / len(self.ordinates[:-2:2]), 2)
@@ -263,7 +263,7 @@ class SampleRenderer(Renderer):
                 self.age = root.ROW.AGE
             if hasattr(root.ROW, 'LITHNAME'):
                 self.lith = self._make_vocab_uri(root.ROW.LITHNAME, 'lithology')
-            if hasattr(root.ROW, 'ACQUIREDATE') and root.ROW.ACQUIREDATE:
+            if hasattr(root.ROW, 'ACQUIREDATE') and len(str(root.ROW.ACQUIREDATE)):
                 self.date_acquired = str2datetime(root.ROW.ACQUIREDATE).date()
             if hasattr(root.ROW, 'MODIFIED_DATE'):
                 self.date_modified = str2datetime(root.ROW.MODIFIED_DATE)
