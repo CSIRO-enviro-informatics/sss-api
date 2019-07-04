@@ -12,7 +12,7 @@ COMPRESS_MIMETYPES = ['application/vnd.google-earth.kml+xml',
                       'application/json', 
                       'application/javascript'
                       ]
-COMPRESS_LEVEL = 0
+COMPRESS_LEVEL = 6
 COMPRESS_MIN_SIZE = 2000 # Don't bother compressing small responses
 
 def configure_app_compression(app):
