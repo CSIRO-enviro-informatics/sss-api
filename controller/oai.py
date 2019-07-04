@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, Response
 from controller.oai_functions import *
 from controller.oai_errors import *
 import _config as conf
+import gc
 
 oai_ = Blueprint('oai', __name__)
 
@@ -153,7 +154,7 @@ def oai():
                 request.values.get('until')
             )
 
-            return Response(
+            response = Response(
                 render_template(
                     'oai_list_records.xml',
                     response_date=response_date,
@@ -164,6 +165,11 @@ def oai():
                 ),
                 mimetype='text/xml'
             )
+            
+            del samples # Deleting this and forcing garbage collection fixes a major memory leak
+            gc.collect()
+            
+            return response
 
         except OaiError as e:
             return render_error(response_date, request.base_url, e.oainame(), e)
