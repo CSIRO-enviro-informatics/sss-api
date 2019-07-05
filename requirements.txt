@@ -1,10 +1,12 @@
 requests
 flask
-flask_paginate
+flask-compress
+flask-paginate
 lxml
 rdflib
 pyldapi
 pytest
+PyYAML
 isodate
 markdown
 SPARQLWrapper
