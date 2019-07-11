@@ -8,3 +8,4 @@ pytest
 isodate
 markdown
 SPARQLWrapper
+pyyaml
