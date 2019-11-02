@@ -15,7 +15,7 @@ class SurveyRenderer(Renderer):
         and PROV-O, the Provenance Ontology.
     """
 
-    URI_MISSSING = 'http://www.opengis.net/def/nil/OGC/0/missing'
+    URI_MISSING = 'http://www.opengis.net/def/nil/OGC/0/missing'
     URI_INAPPLICABLE = 'http://www.opengis.net/def/nil/OGC/0/inapplicable'
     URI_GA = 'http://pid.geoscience.gov.au/org/ga'
 
@@ -26,7 +26,7 @@ class SurveyRenderer(Renderer):
                 "Geoscience Australia's Public Data Model",
                 ['text/html', 'text/turtle', 'application/rdf+xml', 'application/rdf+json', 'application/json'],
                 'text/html',
-                profile_uri=None
+                profile_uri='http://example.org/profile/gapd'
             ),
 
             "argus": View(
@@ -34,7 +34,7 @@ class SurveyRenderer(Renderer):
                 "Geoscience Australia's Airborne Reductions Group Utility System (ARGUS)",
                 ["text/xml"],
                 'text/xml',
-                profile_uri=None
+                profile_uri='http://example.org/profile/argus'
             ),
 
             'sosa': View(
@@ -134,8 +134,8 @@ class SurveyRenderer(Renderer):
             render_template(
                 self.alternates_template or 'alternates.html',
                 register_name='Survey Register',
-                class_uri=self.uri,
-                instance_uri=config.BASE_URI_SURVEY + self.survey_no,
+                class_uri=config.URI_SURVEY_CLASS,
+                instance_uri=config.URI_SURVEY_INSTANCE_BASE + self.survey_no,
                 default_view_token=self.default_view_token,
                 views=self.views
             ),
