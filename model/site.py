@@ -18,7 +18,7 @@ class SiteRenderer(Renderer):
             "pdm": View(
                 "GA's Public Data Model View",
                 "Geoscience Australia's Public Data Model ontology",
-                ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/html", "text/turtle", "application/rdf+xml", "application/ld+json"],
                 'text/html',
                 profile_uri='http://pid.geoscience.gov.au/def/ont/ga/pdm'
             ),
@@ -242,15 +242,17 @@ class SiteRenderer(Renderer):
         if self.not_found:
             return Response('Sample {} not found.'.format(self.site_no), status=404, mimetype='text/plain')
 
-        if self.view == 'alternates':
-            return self._render_alternates_view()
-        elif self.view == 'pdm':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
-        elif self.view == 'nemsr':
-            return self.export_nemsr_geojson()
+        response = super().render()  # alternates and all view
+        if response is None:
+            if self.view == 'pdm':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'nemsr':
+                return self.export_nemsr_geojson()
+        else:
+            return response
 
     def _render_alternates_view_html(self):
         return Response(

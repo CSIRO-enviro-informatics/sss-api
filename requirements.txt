@@ -4,6 +4,7 @@ flask-compress
 flask-paginate
 lxml
 rdflib
+rdflib-jsonld
 pyldapi
 pytest
 PyYAML

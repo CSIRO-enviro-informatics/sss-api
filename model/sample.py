@@ -59,8 +59,10 @@ class SampleRenderer(Renderer):
                     "text/html",
                     "text/turtle",
                     "application/rdf+xml",
-                    "application/rdf+json",
+                    "application/ld+json",
                     "application/xml",
+                    "text/n3",
+                    "text/n-triples",
                     "text/xml"
                 ],
                 'text/turtle',
@@ -86,7 +88,7 @@ class SampleRenderer(Renderer):
             'igsn-o': View(
                 'IGSN Ontology View',
                 "An OWL ontology of Samples based on CSIRO's XML-based IGSN schema",
-                ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/html", "text/turtle", "application/rdf+xml", "application/ld+json"],
                 'text/html',
                 profile_uri='http://pid.geoscience.gov.au/def/ont/ga/igsn'
             ),
@@ -94,7 +96,7 @@ class SampleRenderer(Renderer):
             'prov': View(
                 'PROV View',
                 "The W3C's provenance data model, PROV",
-                ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/html", "text/turtle", "application/rdf+xml", "application/ld+json"],
                 "text/turtle",
                 profile_uri="http://www.w3.org/ns/prov/"
             ),
@@ -102,7 +104,7 @@ class SampleRenderer(Renderer):
             'sosa': View(
                 'SOSA View',
                 "The W3C's Sensor, Observation, Sample, and Actuator ontology within the Semantic Sensor Networks ontology",
-                ["text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/turtle", "application/rdf+xml", "application/ld+json"],
                 "text/turtle",
                 profile_uri="http://www.w3.org/ns/sosa/"
             ),
@@ -316,45 +318,47 @@ class SampleRenderer(Renderer):
         if self.not_found:
             return Response('Sample with IGSN {} not found.'.format(self.igsn), status=404, mimetype='text/plain')
 
-        if self.view == 'alternates':
-            return self._render_alternates_view()
-        elif self.view == 'igsn-o':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            else:
+        response = super().render()  # alternates and all view
+        if response is None:
+            if self.view == 'igsn-o':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'dct':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                elif self.format == 'text/xml':
+                    return Response(self.export_dct_xml(), mimetype=self.format, headers=self.headers)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'igsn':  # only XML for this view
+                return Response(
+                    '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_xml(),
+                    mimetype='text/xml',
+                    headers=self.headers
+                )
+            elif self.view == 'igsn-r1':  # only XML for this view
+                return Response(
+                    '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_r1_xml(),
+                    mimetype='text/xml',
+                    headers=self.headers
+                )
+            elif self.view == 'csirov3':  # only XML for this view
+                return Response(
+                    '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_csirov3_xml(),
+                    mimetype='text/xml',
+                    headers=self.headers
+                )
+            elif self.view == 'prov':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'sosa':  # RDF only for this view
                 return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
-        elif self.view == 'dct':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            elif self.format == 'text/xml':
-                return Response(self.export_dct_xml(), mimetype=self.format, headers=self.headers)
-            else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
-        elif self.view == 'igsn':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_xml(),
-                mimetype='text/xml',
-                headers=self.headers
-            )
-        elif self.view == 'igsn-r1':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_r1_xml(),
-                mimetype='text/xml',
-                headers=self.headers
-            )
-        elif self.view == 'csirov3':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_csirov3_xml(),
-                mimetype='text/xml',
-                headers=self.headers
-            )
-        elif self.view == 'prov':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
-        elif self.view == 'sosa':  # RDF only for this view
-            return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+        else:
+            return response
 
     def _render_alternates_view_html(self):
         return Response(

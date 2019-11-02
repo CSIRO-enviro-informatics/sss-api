@@ -24,7 +24,7 @@ class SurveyRenderer(Renderer):
             "gapd": View(
                 'GA Public Data View',
                 "Geoscience Australia's Public Data Model",
-                ['text/html', 'text/turtle', 'application/rdf+xml', 'application/rdf+json', 'application/json'],
+                ['text/html', 'text/turtle', 'application/rdf+xml', 'application/ld+json', 'application/json'],
                 'text/html',
                 profile_uri='http://example.org/profile/gapd'
             ),
@@ -40,7 +40,7 @@ class SurveyRenderer(Renderer):
             'sosa': View(
                 'SOSA View',
                 "The W3C's Sensor, Observation, Sample, and Actuator ontology within the Semantic Sensor Networks ontology",
-                ["text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/turtle", "application/rdf+xml", "application/ld+json"],
                 "text/turtle",
                 profile_uri="http://www.w3.org/ns/sosa/"
             ),
@@ -48,7 +48,7 @@ class SurveyRenderer(Renderer):
             'prov': View(
                 'PROV View',
                 "The W3C's provenance data model, PROV",
-                ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/html", "text/turtle", "application/rdf+xml", "application/ld+json"],
                 "text/turtle",
                 profile_uri="http://www.w3.org/ns/prov/"
             )
@@ -112,22 +112,25 @@ class SurveyRenderer(Renderer):
     def render(self):
         if self.survey_name is None:
             return Response('Survey with ID {} not found.'.format(self.survey_no), status=404, mimetype='text/plain')
-        if self.view == "alternates":
-            return self._render_alternates_view()
-        elif self.view == 'gapd':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            else:
+
+        response = super().render()  # alternates and all view
+        if response is None:
+            if self.view == 'gapd':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'argus':  # XML only for this controller
+                return redirect(config.XML_API_URL_SURVEY.format(self.survey_no), code=303)
+            elif self.view == 'prov':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'sosa':  # RDF only for this controller
                 return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
-        elif self.view == 'argus':  # XML only for this controller
-            return redirect(config.XML_API_URL_SURVEY.format(self.survey_no), code=303)
-        elif self.view == 'prov':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
-        elif self.view == 'sosa':  # RDF only for this controller
-            return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+        else:
+            return response
 
     def _render_alternates_view_html(self):
         return Response(
