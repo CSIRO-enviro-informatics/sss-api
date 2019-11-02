@@ -49,7 +49,7 @@ class SampleRenderer(Renderer):
                 'An XML-only metadata schema for descriptive elements of IGSNs',
                 ['text/xml'],
                 'text/xml',
-                namespace='https://confluence.csiro.au/display/AusIGSN/CSIRO+IGSN+IMPLEMENTATION'
+                profile_uri='https://confluence.csiro.au/display/AusIGSN/CSIRO+IGSN+IMPLEMENTATION'
             ),
 
             'dct': View(
@@ -64,7 +64,7 @@ class SampleRenderer(Renderer):
                     "text/xml"
                 ],
                 'text/turtle',
-                namespace='http://purl.org/dc/terms/'
+                profile_uri='http://purl.org/dc/terms/'
             ),
 
             'igsn': View(
@@ -72,7 +72,7 @@ class SampleRenderer(Renderer):
                 'The official IGSN XML schema',
                 ['text/xml'],
                 'text/xml',
-                namespace='http://schema.igsn.org/description/'
+                profile_uri='http://schema.igsn.org/description/'
             ),
 
             'igsn-r1': View(
@@ -80,7 +80,7 @@ class SampleRenderer(Renderer):
                 'Version 1 of the official IGSN XML schema',
                 ['text/xml'],
                 'text/xml',
-                namespace='http://schema.igsn.org/description/1.0'
+                profile_uri='http://schema.igsn.org/description/1.0'
             ),
 
             'igsn-o': View(
@@ -88,7 +88,7 @@ class SampleRenderer(Renderer):
                 "An OWL ontology of Samples based on CSIRO's XML-based IGSN schema",
                 ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
                 'text/html',
-                namespace='http://pid.geoscience.gov.au/def/ont/ga/igsn'
+                profile_uri='http://pid.geoscience.gov.au/def/ont/ga/igsn'
             ),
 
             'prov': View(
@@ -96,7 +96,7 @@ class SampleRenderer(Renderer):
                 "The W3C's provenance data model, PROV",
                 ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
                 "text/turtle",
-                namespace="http://www.w3.org/ns/prov/"
+                profile_uri="http://www.w3.org/ns/prov/"
             ),
 
             'sosa': View(
@@ -104,7 +104,7 @@ class SampleRenderer(Renderer):
                 "The W3C's Sensor, Observation, Sample, and Actuator ontology within the Semantic Sensor Networks ontology",
                 ["text/turtle", "application/rdf+xml", "application/rdf+json"],
                 "text/turtle",
-                namespace="http://www.w3.org/ns/sosa/"
+                profile_uri="http://www.w3.org/ns/sosa/"
             ),
         }
 
@@ -322,36 +322,39 @@ class SampleRenderer(Renderer):
             if self.format == 'text/html':
                 return self.export_html(model_view=self.view)
             else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
         elif self.view == 'dct':
             if self.format == 'text/html':
                 return self.export_html(model_view=self.view)
             elif self.format == 'text/xml':
-                return Response(self.export_dct_xml(), mimetype=self.format)
+                return Response(self.export_dct_xml(), mimetype=self.format, headers=self.headers)
             else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
         elif self.view == 'igsn':  # only XML for this view
             return Response(
                 '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_xml(),
-                mimetype='text/xml'
+                mimetype='text/xml',
+                headers=self.headers
             )
         elif self.view == 'igsn-r1':  # only XML for this view
             return Response(
                 '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_r1_xml(),
-                mimetype='text/xml'
+                mimetype='text/xml',
+                headers=self.headers
             )
         elif self.view == 'csirov3':  # only XML for this view
             return Response(
                 '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_csirov3_xml(),
-                mimetype='text/xml'
+                mimetype='text/xml',
+                headers=self.headers
             )
         elif self.view == 'prov':
             if self.format == 'text/html':
                 return self.export_html(model_view=self.view)
             else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
         elif self.view == 'sosa':  # RDF only for this view
-            return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+            return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
 
     def _render_alternates_view_html(self):
         return Response(
@@ -1118,9 +1121,7 @@ class SampleRenderer(Renderer):
 
         # add in the Pingback header links as they are valid for all HTML views
         pingback_uri = config.URI_SAMPLE_INSTANCE_BASE + self.igsn + "/pingback"
-        headers = {
-            'Link': '<{}>;rel = "http://www.w3.org/ns/prov#pingback"'.format(pingback_uri)
-        }
+        self.headers['Link'] += ', <{}>; rel="http://www.w3.org/ns/prov#pingback"'.format(pingback_uri)
 
         return Response(
             render_template(
@@ -1139,7 +1140,7 @@ class SampleRenderer(Renderer):
                 gmap_bbox=self._generate_sample_gmap_bbox(),
                 citation=self._make_citation()
             ),
-            headers=headers
+            headers=self.headers
         )
 
 

@@ -26,7 +26,7 @@ class SurveyRenderer(Renderer):
                 "Geoscience Australia's Public Data Model",
                 ['text/html', 'text/turtle', 'application/rdf+xml', 'application/rdf+json', 'application/json'],
                 'text/html',
-                namespace=None
+                profile_uri=None
             ),
 
             "argus": View(
@@ -34,7 +34,7 @@ class SurveyRenderer(Renderer):
                 "Geoscience Australia's Airborne Reductions Group Utility System (ARGUS)",
                 ["text/xml"],
                 'text/xml',
-                namespace=None
+                profile_uri=None
             ),
 
             'sosa': View(
@@ -42,7 +42,7 @@ class SurveyRenderer(Renderer):
                 "The W3C's Sensor, Observation, Sample, and Actuator ontology within the Semantic Sensor Networks ontology",
                 ["text/turtle", "application/rdf+xml", "application/rdf+json"],
                 "text/turtle",
-                namespace="http://www.w3.org/ns/sosa/"
+                profile_uri="http://www.w3.org/ns/sosa/"
             ),
 
             'prov': View(
@@ -50,7 +50,7 @@ class SurveyRenderer(Renderer):
                 "The W3C's provenance data model, PROV",
                 ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
                 "text/turtle",
-                namespace="http://www.w3.org/ns/prov/"
+                profile_uri="http://www.w3.org/ns/prov/"
             )
         }
 
@@ -118,16 +118,16 @@ class SurveyRenderer(Renderer):
             if self.format == 'text/html':
                 return self.export_html(model_view=self.view)
             else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
         elif self.view == 'argus':  # XML only for this controller
             return redirect(config.XML_API_URL_SURVEY.format(self.survey_no), code=303)
         elif self.view == 'prov':
             if self.format == 'text/html':
                 return self.export_html(model_view=self.view)
             else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
         elif self.view == 'sosa':  # RDF only for this controller
-            return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+            return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
 
     def _render_alternates_view_html(self):
         return Response(

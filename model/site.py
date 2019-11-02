@@ -20,7 +20,7 @@ class SiteRenderer(Renderer):
                 "Geoscience Australia's Public Data Model ontology",
                 ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
                 'text/html',
-                namespace='http://pid.geoscience.gov.au/def/ont/ga/pdm'
+                profile_uri='http://pid.geoscience.gov.au/def/ont/ga/pdm'
             ),
 
             "nemsr": View(
@@ -28,7 +28,7 @@ class SiteRenderer(Renderer):
                 "The National Environmental Monitoring Sites Register",
                 ["application/vnd.geo+json"],
                 "application/vnd.geo+json",
-                namespace="http://www.neii.gov.au/nemsr"
+                profile_uri="http://www.neii.gov.au/nemsr"
             )
         }
 
@@ -248,7 +248,7 @@ class SiteRenderer(Renderer):
             if self.format == 'text/html':
                 return self.export_html(model_view=self.view)
             else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
         elif self.view == 'nemsr':
             return self.export_nemsr_geojson()
 
@@ -330,7 +330,8 @@ class SiteRenderer(Renderer):
         }
         return Response(
             json.dumps(site),
-            mimetype='application/vnd.geo+json'
+            mimetype='application/vnd.geo+json',
+            headers=self.headers
         )
 
     def export_rdf(self, model_view='pdm', rdf_mime='text/turtle'):
@@ -426,9 +427,7 @@ class SiteRenderer(Renderer):
 
         # add in the Pingback header links as they are valid for all HTML views
         pingback_uri = config.URI_SITE_INSTANCE_BASE + self.site_no + "/pingback"
-        headers = {
-            'Link': '<{}>;rel = "http://www.w3.org/ns/prov#pingback"'.format(pingback_uri)
-        }
+        self.headers['Link'] += ', <{}>; rel="http://www.w3.org/ns/prov#pingback"'.format(pingback_uri)
 
         return Response(
             render_template(
@@ -447,7 +446,7 @@ class SiteRenderer(Renderer):
                 coords=self.coords,
                 base_url=config.BASE_URL
             ),
-            headers=headers
+            headers=self.headers
         )
 
 
