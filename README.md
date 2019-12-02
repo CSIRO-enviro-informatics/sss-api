@@ -1,3 +1,5 @@
+***This repository is now deprecated and archived. Please see the up-to-date clone at https://github.com/GeoscienceAustralia/sss-api.***
+
 # Sample, Site, Survey (SSS) API
 This is an API consolidated from:
 * https://github.com/GeoscienceAustralia/samples-api
