@@ -49,7 +49,7 @@ class SampleRenderer(Renderer):
                 'An XML-only metadata schema for descriptive elements of IGSNs',
                 ['text/xml'],
                 'text/xml',
-                namespace='https://confluence.csiro.au/display/AusIGSN/CSIRO+IGSN+IMPLEMENTATION'
+                profile_uri='https://confluence.csiro.au/display/AusIGSN/CSIRO+IGSN+IMPLEMENTATION'
             ),
 
             'dct': View(
@@ -59,12 +59,14 @@ class SampleRenderer(Renderer):
                     "text/html",
                     "text/turtle",
                     "application/rdf+xml",
-                    "application/rdf+json",
+                    "application/ld+json",
                     "application/xml",
+                    "text/n3",
+                    "text/n-triples",
                     "text/xml"
                 ],
                 'text/turtle',
-                namespace='http://purl.org/dc/terms/'
+                profile_uri='http://purl.org/dc/terms/'
             ),
 
             'igsn': View(
@@ -72,7 +74,7 @@ class SampleRenderer(Renderer):
                 'The official IGSN XML schema',
                 ['text/xml'],
                 'text/xml',
-                namespace='http://schema.igsn.org/description/'
+                profile_uri='http://schema.igsn.org/description/'
             ),
 
             'igsn-r1': View(
@@ -80,31 +82,31 @@ class SampleRenderer(Renderer):
                 'Version 1 of the official IGSN XML schema',
                 ['text/xml'],
                 'text/xml',
-                namespace='http://schema.igsn.org/description/1.0'
+                profile_uri='http://schema.igsn.org/description/1.0'
             ),
 
             'igsn-o': View(
                 'IGSN Ontology View',
                 "An OWL ontology of Samples based on CSIRO's XML-based IGSN schema",
-                ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/html", "text/turtle", "application/rdf+xml", "application/ld+json"],
                 'text/html',
-                namespace='http://pid.geoscience.gov.au/def/ont/ga/igsn'
+                profile_uri='http://pid.geoscience.gov.au/def/ont/ga/igsn'
             ),
 
             'prov': View(
                 'PROV View',
                 "The W3C's provenance data model, PROV",
-                ["text/html", "text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/html", "text/turtle", "application/rdf+xml", "application/ld+json"],
                 "text/turtle",
-                namespace="http://www.w3.org/ns/prov/"
+                profile_uri="http://www.w3.org/ns/prov/"
             ),
 
             'sosa': View(
                 'SOSA View',
                 "The W3C's Sensor, Observation, Sample, and Actuator ontology within the Semantic Sensor Networks ontology",
-                ["text/turtle", "application/rdf+xml", "application/rdf+json"],
+                ["text/turtle", "application/rdf+xml", "application/ld+json"],
                 "text/turtle",
-                namespace="http://www.w3.org/ns/sosa/"
+                profile_uri="http://www.w3.org/ns/sosa/"
             ),
         }
 
@@ -114,12 +116,6 @@ class SampleRenderer(Renderer):
         #       - or Local URI, e.g. http://localhost:5000/sample/AU239
         #   2. OAI-PMH URL, e.g. http://pid.geoscience.gov.au/oai?verb=GetRecord&identifier=AU239&metadataPrefix=dc
         #       - or local URL, e.g. http://localhost:5000/oai?verb=GetRecord&identifier=AU239&metadataPrefix=dc
-        if request.base_url.endswith('oai'):
-            self.igsn = request.values['identifier']
-        else:
-            self.igsn = request.base_url.split('/')[-1]
-
-        super(SampleRenderer, self).__init__(request, config.URI_SAMPLE_INSTANCE_BASE + self.igsn, views, 'igsn-o')
 
         self.sample_id = None
         self.access_rights = None
@@ -163,6 +159,13 @@ class SampleRenderer(Renderer):
         if xml is not None:  # even if there are values for Oracle API URI and IGSN, load from XML file if present
             self._populate_from_xml_file(xml)
         else:
+            assert request is not None, 'Must supply either request or xml to render sample'
+            if request.base_url.endswith('oai'):
+                self.igsn = request.values['identifier']
+            else:
+                self.igsn = request.base_url.split('/')[-1]
+
+            super(SampleRenderer, self).__init__(request, config.URI_SAMPLE_INSTANCE_BASE + self.igsn, views, 'igsn-o')
             self._populate_from_oracle_api()
 
     def validate_xml(self, xml):
@@ -170,9 +173,11 @@ class SampleRenderer(Renderer):
 
         try:
             etree.fromstring(xml, parser)
+            #print(xml)
             return True
         except Exception:
             print('not valid xml')
+            print(xml)
             return False
 
     def _populate_from_oracle_api(self):
@@ -240,7 +245,7 @@ class SampleRenderer(Renderer):
                         self.z = root.ROW.GEOM.SDO_POINT.Z
                 if hasattr(root.ROW.GEOM, 'SDO_ELEM_INFO'):
                     self.elem_info = root.ROW.GEOM.SDO_ELEM_INFO
-                if hasattr(root.ROW.GEOM, 'SDO_ORDINATES'):
+                if hasattr(root.ROW.GEOM, 'SDO_ORDINATES') and len(str(root.ROW.GEOM.SDO_ORDINATES)):
                     self.ordinates = root.ROW.GEOM.SDO_ORDINATES.getchildren()
                     # calculate centroid values to centre a map
                     self.centroid_lat = round(sum(self.ordinates[1:-2:2]) / len(self.ordinates[:-2:2]), 2)
@@ -260,7 +265,7 @@ class SampleRenderer(Renderer):
                 self.age = root.ROW.AGE
             if hasattr(root.ROW, 'LITHNAME'):
                 self.lith = self._make_vocab_uri(root.ROW.LITHNAME, 'lithology')
-            if hasattr(root.ROW, 'ACQUIREDATE'):
+            if hasattr(root.ROW, 'ACQUIREDATE') and len(str(root.ROW.ACQUIREDATE)):
                 self.date_acquired = str2datetime(root.ROW.ACQUIREDATE).date()
             if hasattr(root.ROW, 'MODIFIED_DATE'):
                 self.date_modified = str2datetime(root.ROW.MODIFIED_DATE)
@@ -272,10 +277,12 @@ class SampleRenderer(Renderer):
                 self.entity_type = self._make_vocab_uri(root.ROW.ENTITY_TYPE, 'entity_type')
             if hasattr(root.ROW, 'HOLE_MIN_LONGITUDE'):
                 self.hole_long_min = root.ROW.HOLE_MIN_LONGITUDE
+                self.x = root.ROW.HOLE_MIN_LONGITUDE
             if hasattr(root.ROW, 'HOLE_MAX_LONGITUDE'):
                 self.hole_long_max = root.ROW.HOLE_MAX_LONGITUDE
             if hasattr(root.ROW, 'HOLE_MIN_LATITUDE'):
                 self.hole_lat_min = root.ROW.HOLE_MIN_LATITUDE
+                self.y = root.ROW.HOLE_MIN_LATITUDE
             if hasattr(root.ROW, 'HOLE_MAX_LATITUDE'):
                 self.hole_lat_max = root.ROW.HOLE_MAX_LATITUDE
             if hasattr(root.ROW, 'ORIGINATOR'):
@@ -290,7 +297,7 @@ class SampleRenderer(Renderer):
                     # custodian_uri & custodian_label set to GA by default
                     self.collector = str(root.ROW.ORIGINATOR)
         except Exception as e:
-            print(e)
+            print('Error in _populate_from_xml_file function: {}'.format(e))
 
         return True
 
@@ -311,49 +318,54 @@ class SampleRenderer(Renderer):
         if self.not_found:
             return Response('Sample with IGSN {} not found.'.format(self.igsn), status=404, mimetype='text/plain')
 
-        if self.view == 'alternates':
-            return self._render_alternates_view()
-        elif self.view == 'igsn-o':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
-        elif self.view == 'dct':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            elif self.format == 'text/xml':
-                return Response(self.export_dct_xml(), mimetype=self.format)
-            else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
-        elif self.view == 'igsn':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_xml(),
-                mimetype='text/xml'
-            )
-        elif self.view == 'igsn-r1':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_r1_xml(),
-                mimetype='text/xml'
-            )
-        elif self.view == 'csirov3':  # only XML for this view
-            return Response(
-                '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_csirov3_xml(),
-                mimetype='text/xml'
-            )
-        elif self.view == 'prov':
-            if self.format == 'text/html':
-                return self.export_html(model_view=self.view)
-            else:
-                return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
-        elif self.view == 'sosa':  # RDF only for this view
-            return Response(self.export_rdf(self.view, self.format), mimetype=self.format)
+        response = super().render()  # alternates and all view
+        if response is None:
+            if self.view == 'igsn-o':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'dct':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                elif self.format == 'text/xml':
+                    return Response(self.export_dct_xml(), mimetype=self.format, headers=self.headers)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'igsn':  # only XML for this view
+                return Response(
+                    '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_xml(),
+                    mimetype='text/xml',
+                    headers=self.headers
+                )
+            elif self.view == 'igsn-r1':  # only XML for this view
+                return Response(
+                    '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_igsn_r1_xml(),
+                    mimetype='text/xml',
+                    headers=self.headers
+                )
+            elif self.view == 'csirov3':  # only XML for this view
+                return Response(
+                    '<?xml version="1.0" encoding="utf-8"?>\n' + self.export_csirov3_xml(),
+                    mimetype='text/xml',
+                    headers=self.headers
+                )
+            elif self.view == 'prov':
+                if self.format == 'text/html':
+                    return self.export_html(model_view=self.view)
+                else:
+                    return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+            elif self.view == 'sosa':  # RDF only for this view
+                return Response(self.export_rdf(self.view, self.format), mimetype=self.format, headers=self.headers)
+        else:
+            return response
 
     def _render_alternates_view_html(self):
         return Response(
             render_template(
                 self.alternates_template or 'alternates.html',
                 register_name='Sample Register',
-                class_uri=self.uri,
+                class_uri=config.URI_SAMPLE_CLASS,
                 instance_uri=config.URI_SAMPLE_INSTANCE_BASE + self.igsn,
                 default_view_token=self.default_view_token,
                 views=self.views
@@ -1113,9 +1125,7 @@ class SampleRenderer(Renderer):
 
         # add in the Pingback header links as they are valid for all HTML views
         pingback_uri = config.URI_SAMPLE_INSTANCE_BASE + self.igsn + "/pingback"
-        headers = {
-            'Link': '<{}>;rel = "http://www.w3.org/ns/prov#pingback"'.format(pingback_uri)
-        }
+        self.headers['Link'] += ', <{}>; rel="http://www.w3.org/ns/prov#pingback"'.format(pingback_uri)
 
         return Response(
             render_template(
@@ -1134,7 +1144,7 @@ class SampleRenderer(Renderer):
                 gmap_bbox=self._generate_sample_gmap_bbox(),
                 citation=self._make_citation()
             ),
-            headers=headers
+            headers=self.headers
         )
 
 
